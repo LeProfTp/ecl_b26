@@ -1,0 +1,1571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unicorn Logbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one reading column; the Lab table is the only wide element and scrolls inside its frame. Dark only, like the ECL decks. */
+:root {
+  --bg: #12161A; --s1: #181D22; --s2: #1F252B; --line: #2E363D;
+  --fg: #ECE6DA; --hd: #F3EEE4; --mut: #8A939B; --gold: #C9A45C;
+  --sub: #8FA6BF; --rev: #D98B5F; --ok: #8FB89A;
+  --f-d: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --f-b: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --f-m: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 var(--f-b); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+a { color: var(--gold); text-decoration: none; } a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--f-d); font-weight: 500; color: var(--hd); line-height: 1.1; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(34px, 5.4vw, 60px); letter-spacing: -.01em; }
+h2 { font-size: 28px; margin: 48px 0 16px; display: flex; align-items: baseline; gap: 12px; }
+h3 { font-size: 24px; }
+p { margin: 0; }
+.mono { font-family: var(--f-m); } .muted { color: var(--mut); }
+.eyebrow { font: 500 11px var(--f-m); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main.wrap { padding-block: 32px 80px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; } .row.end { justify-content: flex-end; }
+
+/* Chrome */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 14px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--hd); font: 500 21px var(--f-d); }
+.brand:hover { text-decoration: none; }
+.mark { font-size: 11px; letter-spacing: .14em; color: var(--gold); border: 1px solid var(--gold); padding: 3px 6px; }
+.nav { display: flex; gap: 4px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.nav a { color: var(--mut); padding: 6px 10px; } .nav a.on, .nav a:hover { color: var(--hd); text-decoration: none; box-shadow: inset 0 -1px 0 var(--gold); }
+.demo { font-size: 11px; color: var(--gold); background: var(--s1); border-bottom: 1px solid var(--line); } .demo .wrap { padding-block: 8px; }
+.foot { border-top: 1px solid var(--line); color: var(--mut); font: 12px var(--f-m); }
+.foot .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-block: 24px; }
+
+.btn { display: inline-block; font: 500 13px var(--f-b); letter-spacing: .02em; background: var(--gold); color: var(--bg); border: 1px solid var(--gold); padding: 9px 16px; cursor: pointer; }
+.btn:hover { text-decoration: none; filter: brightness(1.08); } .btn:disabled { opacity: .5; }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.link { background: none; border: 0; padding: 0; font: inherit; color: var(--gold); cursor: pointer; }
+.link:hover { text-decoration: underline; }
+input, select, textarea { width: 100%; font: 14px/1.5 var(--f-b); color: var(--fg); background: var(--bg); border: 1px solid var(--line); padding: 9px 11px; border-radius: 0; }
+input:focus, select:focus, textarea:focus { outline: 1px solid var(--gold); border-color: var(--gold); }
+textarea { resize: vertical; }
+.inline { display: inline-flex; gap: 8px; align-items: center; margin-top: 16px; font: 12px var(--f-m); color: var(--mut); } .inline select { width: auto; padding: 4px 8px; }
+
+/* Lab */
+.hero { display: grid; gap: 20px; padding-bottom: 8px; }
+.hero h1 { font-style: italic; max-width: 16ch; }
+.now { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "m m a" "t t a" "b b a"; gap: 2px 16px; max-width: 560px; padding: 16px 20px; border: 1px solid var(--gold); color: var(--fg); }
+.now:hover { text-decoration: none; background: var(--s1); }
+.now .mono { grid-area: m; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }
+.now strong { grid-area: t; font: 500 24px var(--f-d); color: var(--hd); }
+.now .brief-n { grid-area: b; color: var(--mut); text-transform: none; letter-spacing: 0; font-size: 12px; }
+.now .arrow { grid-area: a; align-self: center; color: var(--gold); font-size: 20px; }
+.path { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin-top: 36px; border-top: 1px solid var(--line); }
+.stage { padding: 12px 12px 0 0; border-left: 1px solid var(--line); padding-left: 12px; }
+.stage:first-child { border-left: 0; padding-left: 0; }
+.stage > .mono { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--mut); }
+.stage.on > .mono { color: var(--gold); }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.chip { font: 12px var(--f-m); padding: 2px 6px; color: var(--fg); border: 1px solid var(--line); }
+.chip.ex { border-color: var(--gold); } .chip.cur { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+.chip:hover { text-decoration: none; border-color: var(--fg); }
+
+.queue ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.queue li a { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.3fr) auto; gap: 12px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--line); color: var(--fg); }
+.queue li a:hover { text-decoration: none; background: var(--s1); }
+.queue li strong { font: 500 18px var(--f-d); color: var(--hd); }
+.count { font-size: 12px; color: var(--bg); background: var(--gold); padding: 1px 8px; }
+
+.tbl { overflow-x: auto; border: 1px solid var(--line); }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+tbody tr:last-child > * { border-bottom: 0; }
+thead th { font: 500 11px var(--f-m); letter-spacing: .08em; text-transform: uppercase; color: var(--mut); background: var(--s1); }
+tbody th a { font: 500 19px var(--f-d); color: var(--hd); }
+tbody th small { display: block; font: 11px var(--f-m); color: var(--mut); }
+.lab .dc { text-align: center; padding: 12px 4px; } .lab .dc.cur { background: var(--s1); }
+thead .dc.cur { color: var(--gold); }
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--line); vertical-align: middle; }
+.dot.s1 { background: var(--sub); border-color: var(--sub); } .dot.s2 { background: var(--rev); border-color: var(--rev); } .dot.s3 { background: var(--ok); border-color: var(--ok); }
+a.dot:hover { transform: scale(1.3); }
+.ladder { display: inline-flex; gap: 3px; vertical-align: middle; } .ladder i { width: 8px; height: 14px; background: var(--s2); border: 1px solid var(--line); } .ladder i.on { background: var(--gold); border-color: var(--gold); }
+.move { font: 500 11px var(--f-m); letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border: 1px solid currentColor; display: inline-block; }
+.m-persevere { color: var(--ok); } .m-narrow { color: var(--sub); } .m-pivot { color: var(--rev); } .m-pause, .move.none { color: var(--mut); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font: 11px var(--f-m); color: var(--mut); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+
+/* Session */
+.crumb { font-size: 11px; letter-spacing: .06em; color: var(--mut); margin-bottom: 20px; } .crumb a { color: var(--mut); }
+.ph { margin-bottom: 28px; display: grid; gap: 4px; }
+.note { margin-top: 12px; font: 12px var(--f-m); color: var(--rev); }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.stack { display: grid; gap: 16px; }
+.card { background: var(--s1); border: 1px solid var(--line); padding: 22px 24px; display: grid; gap: 12px; justify-items: start; min-width: 0; }
+.fields { margin: 4px 0 0; padding: 0; list-style: none; counter-reset: f; width: 100%; }
+.fields li { counter-increment: f; display: grid; grid-template-columns: 36px 1fr; padding: 10px 0; border-top: 1px solid var(--line); }
+.fields li::before { content: counter(f, decimal-leading-zero); font: 12px var(--f-m); color: var(--gold); grid-row: span 2; padding-top: 3px; }
+.fields strong { font-weight: 500; color: var(--hd); } .fields span { color: var(--mut); font-size: 14px; }
+.gate { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } .gate .mono { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--mut); margin-right: 4px; }
+.g { font: 12px var(--f-m); border: 1px solid var(--line); padding: 2px 8px; }
+.check, .mat { margin: 0; padding: 0; list-style: none; width: 100%; }
+.check li { padding: 6px 0 6px 24px; position: relative; } .check li::before { content: ''; position: absolute; left: 0; top: 11px; width: 12px; height: 12px; border: 1px solid var(--gold); }
+.mat li { padding: 4px 0; }
+.vstat { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.vs { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; background: var(--bg); color: var(--fg); }
+.vs:hover { text-decoration: none; background: var(--s1); }
+.vs span { font: 500 18px var(--f-d); color: var(--hd); line-height: 1.2; } .vs small { display: block; font: 11px var(--f-m); color: var(--mut); }
+.vs em { font-style: normal; font-size: 11px; color: var(--mut); }
+.pager { display: flex; justify-content: space-between; gap: 16px; margin-top: 40px; font-size: 12px; flex-wrap: wrap; }
+
+/* Venture */
+.vh { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.vh > div:first-child { display: grid; gap: 8px; justify-items: start; max-width: 680px; }
+.one { font: italic 500 22px/1.35 var(--f-d); color: var(--fg); }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 32px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.kpis > div { padding: 18px 20px 18px 0; display: grid; gap: 8px; justify-items: start; align-content: start; }
+.kpis > div + div { border-left: 1px solid var(--line); padding-left: 20px; }
+.kpis .muted { font-size: 13px; }
+.big { font-size: 28px; color: var(--hd); } .big span { font-size: 14px; color: var(--mut); }
+.briefs h2 { margin-top: 40px; }
+.brief { border: 1px solid var(--line); background: var(--s1); margin-bottom: 8px; scroll-margin-top: 80px; }
+.brief > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 18px; }
+.brief > summary::-webkit-details-marker { display: none; }
+.brief > summary:hover { background: var(--s2); }
+.sid { font-size: 12px; color: var(--gold); }
+.bt strong { display: block; font: 500 20px var(--f-d); color: var(--hd); line-height: 1.2; } .bt small { font: 11px var(--f-m); color: var(--mut); }
+.pill { font: 500 11px var(--f-m); letter-spacing: .06em; text-transform: uppercase; color: var(--mut); white-space: nowrap; }
+.pill.s1 { color: var(--sub); } .pill.s2 { color: var(--rev); } .pill.s3 { color: var(--ok); }
+.bbody { padding: 4px 18px 20px; border-top: 1px solid var(--line); display: grid; gap: 16px; }
+.bf { margin: 0; } .bf > div { display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.bf dt { font-size: 11px; letter-spacing: .04em; color: var(--mut); padding-top: 3px; } .bf dd { margin: 0; overflow-wrap: anywhere; }
+.edit { display: grid; gap: 14px; padding-top: 12px; }
+.edit label { display: grid; gap: 4px; } .edit label .mono { font-size: 11px; color: var(--gold); letter-spacing: .04em; } .edit small { color: var(--mut); font-size: 13px; }
+.meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 11px; color: var(--mut); }
+.hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.hist li { border-left: 2px solid var(--line); padding-left: 14px; opacity: .78; } .hist li > .mono { font-size: 11px; color: var(--mut); }
+.fbs { display: grid; gap: 10px; justify-items: start; }
+.fb { width: 100%; padding: 12px 16px; background: var(--bg); border-left: 2px solid var(--rev); display: grid; gap: 6px; }
+.fb.ok { border-left-color: var(--ok); } .fb .mono { font-size: 11px; letter-spacing: .04em; color: var(--mut); }
+.fbempty { font-size: 13px; }
+.todo { display: grid; gap: 6px; padding-top: 4px; }
+.cb { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; } .cb.ro { cursor: default; }
+.cb input { width: 16px; height: 16px; margin: 3px 0 0; accent-color: var(--gold); flex: none; }
+.later { margin-top: 16px; } .later > summary { cursor: pointer; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--mut); padding: 10px 0; }
+.later[open] > summary { margin-bottom: 8px; }
+
+/* Modal, toast */
+.modal { position: fixed; inset: 0; z-index: 20; background: rgba(8, 10, 12, .72); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.modal .box { width: min(520px, 100%); background: var(--s1); border: 1px solid var(--line); padding: 24px; display: grid; gap: 14px; }
+.modal label { display: grid; gap: 6px; font-size: 13px; color: var(--mut); }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30; background: var(--hd); color: var(--bg); padding: 10px 18px; font-size: 14px; }
+.toast.err { background: var(--rev); }
+.err { color: var(--rev); }
+
+@media (max-width: 820px) {
+  .path { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stage:nth-child(4) { border-left: 0; padding-left: 0; }
+  .grid2 { grid-template-columns: 1fr; }
+  .bf > div { grid-template-columns: 1fr; gap: 2px; }
+}
+@media (max-width: 520px) {
+  .path { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stage:nth-child(odd) { border-left: 0; padding-left: 0; } .stage:nth-child(4) { border-left: 1px solid var(--line); padding-left: 12px; }
+  .kpis { grid-template-columns: 1fr; } .kpis > div + div { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+  .queue li a { grid-template-columns: 40px 1fr; } .queue li a > :nth-child(3), .queue li a > :nth-child(4) { grid-column: 2; }
+  .brief > summary { grid-template-columns: 36px minmax(0, 1fr); } .brief .pill { grid-column: 2; }
+  .brand span:last-child { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+#mine { display: contents; }
+
+/* ---------- v2: two tracks, focus, plan ---------- */
+:root { --usr: #C9A45C; --prd: #8FA6BF; --oth: #3A434B; --warn: #D98B5F; }
+.warn { color: var(--warn) !important; }
+.small { font-size: 12px; }
+.btn.small { padding: 6px 12px; font-size: 12px; }
+.row.between { justify-content: space-between; align-items: flex-end; }
+.credo { margin: 0; max-width: 640px; border-left: 2px solid var(--gold); padding: 4px 0 4px 18px; }
+.credo p { font: italic 500 21px/1.4 var(--f-d); color: var(--fg); }
+.credo cite { display: block; margin-top: 6px; font: normal 11px var(--f-m); letter-spacing: .12em; text-transform: uppercase; color: var(--mut); }
+.split { display: inline-flex; width: 72px; height: 8px; background: var(--s2); vertical-align: middle; overflow: hidden; }
+.split.big { width: 180px; height: 10px; }
+.split i { display: block; height: 100%; } .split .u { background: var(--usr); } .split .p { background: var(--prd); } .split .o { background: var(--oth); }
+.split.empty i { background: var(--s2); }
+.lab .fc { white-space: nowrap; } .lab .fc small { margin-left: 8px; font-size: 11px; color: var(--mut); }
+.lab .tr { font-size: 12px; color: var(--mut); } .lab .tr b { color: var(--hd); font-weight: 500; }
+.legend b { color: var(--hd); font-weight: 500; }
+.sw { display: inline-block; width: 10px; height: 10px; } .sw.u { background: var(--usr); } .sw.p { background: var(--prd); } .sw.o { background: var(--oth); }
+.queue li.pl a { box-shadow: inset 2px 0 0 var(--gold); padding-left: 10px; }
+.tk { font: 500 10px var(--f-m); letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; flex: none; }
+.tk-users { color: var(--usr); } .tk-product { color: var(--prd); } .tk-plan { color: var(--mut); }
+.tasks { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 8px; }
+.tasks li { display: flex; gap: 10px; align-items: baseline; }
+.cbrow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.cb { align-items: baseline; } .cb .tk { margin-top: 0; }
+.link.small { font-size: 12px; }
+
+.credo-band { margin-top: 28px; padding: 16px 20px; background: var(--s1); border: 1px solid var(--line); display: grid; gap: 12px; }
+.credo-band p { font: italic 500 18px/1.4 var(--f-d); } .credo-band cite { font: normal 11px var(--f-m); color: var(--mut); letter-spacing: .1em; text-transform: uppercase; margin-left: 6px; }
+.cw { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 12px; } .cw .mono { color: var(--mut); }
+.kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 20px; }
+.kpis .big span { font-size: 12px; }
+.tabs { display: flex; gap: 4px; margin: 32px 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tabs a { padding: 10px 14px; font: 500 12px var(--f-m); letter-spacing: .08em; text-transform: uppercase; color: var(--mut); white-space: nowrap; }
+.tabs a:hover { color: var(--hd); text-decoration: none; }
+.tabs a[aria-current="page"] { color: var(--hd); box-shadow: inset 0 -2px 0 var(--gold); }
+
+.tgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.tcol { background: var(--s1); border: 1px solid var(--line); border-top: 2px solid var(--usr); padding: 20px 22px; display: grid; gap: 16px; align-content: start; min-width: 0; }
+.tcol.t-product { border-top-color: var(--prd); }
+.tcol header { display: grid; gap: 4px; justify-items: start; } .tcol header .btn { margin-top: 8px; }
+.t-product .eyebrow { color: var(--prd); }
+.totals { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.totals div { background: var(--bg); padding: 10px 12px; display: grid; gap: 2px; }
+.totals dt { font-size: 12px; color: var(--mut); } .totals dd { margin: 0; font-size: 22px; color: var(--hd); }
+.tlog { list-style: none; margin: 0; padding: 0; display: grid; }
+.tlog li { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; align-items: baseline; }
+.tlog li.muted { display: block; } .tlog .mono { font-size: 11px; color: var(--mut); } .tlog b { color: var(--hd); font-weight: 500; }
+.focus { margin-top: 16px; justify-items: stretch; }
+.weeks { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; height: 180px; align-items: end; padding-top: 8px; }
+.wk { display: grid; grid-template-rows: 1fr auto auto; height: 100%; align-items: end; justify-items: center; gap: 4px; }
+.wk .stack { width: 100%; max-width: 44px; display: flex; flex-direction: column; min-height: 2px; background: var(--s2); }
+.wk .stack i { display: block; } .wk .u { background: var(--usr); } .wk .p { background: var(--prd); } .wk .o { background: var(--oth); }
+.wk > .mono { font-size: 11px; color: var(--mut); } .wk small { font-size: 10px; color: var(--mut); }
+.wk.cur > .mono { color: var(--gold); }
+.ready { margin-top: 16px; justify-items: stretch; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.checks li { background: var(--bg); padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+.checks i { flex: none; width: 18px; height: 18px; border: 1px solid var(--line); display: grid; place-items: center; font: normal 12px var(--f-m); color: var(--bg); }
+.checks li.ok i { background: var(--ok); border-color: var(--ok); }
+.checks strong { display: block; font-weight: 500; color: var(--hd); font-size: 14px; } .checks small { font-size: 11px; color: var(--mut); }
+
+.pbar { justify-items: stretch; margin-top: 16px; }
+.meter { display: flex; height: 8px; background: var(--s2); } .meter i { display: block; height: 100%; } .meter .acc { background: var(--ok); } .meter .fill { background: var(--gold); }
+.review { border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 10px; justify-items: start; max-width: 68ch; }
+.plan { margin-top: 16px; background: var(--s1); border: 1px solid var(--line); padding: clamp(20px, 5vw, 56px); display: grid; gap: 8px; }
+.pcover { padding-bottom: 24px; border-bottom: 1px solid var(--gold); display: grid; gap: 8px; }
+.pcover h2 { font-size: clamp(36px, 6vw, 56px); margin: 0; }
+.pnote { font-size: 13px; color: var(--mut); max-width: 68ch; }
+.okmark { color: var(--ok); font-family: var(--f-m); }
+.psec { padding: 24px 0 8px; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
+.psec h3 { margin: 0; display: flex; gap: 14px; align-items: baseline; font-size: 26px; } .psec h3 .mono { font-size: 12px; color: var(--gold); }
+.psec .lead { font: italic 500 20px/1.4 var(--f-d); color: var(--fg); max-width: 60ch; }
+.psec dl { margin: 0; display: grid; }
+.psec dl > div { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr); gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+.psec dt { font-size: 13px; color: var(--mut); } .psec dt .mono { font-size: 11px; color: var(--gold); margin-right: 4px; }
+.psec dd { margin: 0; max-width: 68ch; overflow-wrap: anywhere; }
+.psec .gap dd { color: var(--mut); font-style: italic; font-size: 14px; }
+.facts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.facts li { background: var(--bg); padding: 10px 12px; display: grid; gap: 2px; } .facts span { font-size: 11px; color: var(--mut); } .facts b { font-weight: 500; color: var(--hd); }
+.pt { width: auto; min-width: min(420px, 100%); } .pt th, .pt td { padding: 6px 16px 6px 0; border: 0; border-top: 1px solid var(--line); font-size: 14px; white-space: normal; } .pt th { color: var(--mut); font-weight: 400; } .pt td { color: var(--hd); text-align: right; }
+.plog { margin: 0; padding-left: 18px; font-size: 14px; } .plog .mono { font-size: 11px; color: var(--mut); }
+.appx .afb { padding: 10px 0; border-top: 1px solid var(--line); display: grid; gap: 4px; } .appx .afb .mono { font-size: 11px; color: var(--mut); }
+
+@media (max-width: 820px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kpis > div:nth-child(odd) { border-left: 0; padding-left: 0; }
+  .kpis > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .tgrid { grid-template-columns: 1fr; } .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .psec dl > div { grid-template-columns: 1fr; gap: 2px; }
+}
+@media (max-width: 520px) { .weeks { gap: 4px; } .kpis { grid-template-columns: 1fr; } .kpis > div + div { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); } }
+
+@media print {
+  :root { --bg: #fff; --s1: #fff; --s2: #eee; --line: #ccc; --fg: #111; --hd: #000; --mut: #555; --gold: #7A5C22; }
+  body { background: #fff; color: #111; } .top, .demo, .foot, .crumb, .vh .auth, .credo-band, .kpis, .tabs, .pbar, .vh button { display: none !important; }
+  .plan { border: 0; padding: 0; } .psec { break-inside: avoid; }
+}
+.totals div:last-child:nth-child(odd) { grid-column: span 2; }
+
+/* ---------- v3: gate, criteria ---------- */
+.signin { padding-top: 24px; }
+.codeform { display: grid; gap: 8px; max-width: 560px; margin-top: 8px; }
+.codeform label { font: 500 11px var(--f-m); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+.codeform .row { flex-wrap: wrap; } .codeform input { flex: 1 1 260px; min-width: 0; width: auto; font: 500 18px var(--f-m); letter-spacing: .08em; text-transform: uppercase; padding: 12px 14px; }
+.codeform .btn { padding: 13px 18px; }
+.crit { margin-top: 16px; border: 1px solid var(--line); background: var(--s1); }
+.crit > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; padding: 12px 18px; font-size: 13px; }
+.crit > summary::-webkit-details-marker { display: none; }
+.crit > summary .mono { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+.crit > summary::after { content: '+'; margin-left: auto; font-family: var(--f-m); color: var(--mut); } .crit[open] > summary::after { content: '–'; }
+.draft { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--warn); border: 1px solid var(--warn); padding: 1px 6px; }
+.cgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding: 4px 18px 16px; }
+.cgrid h4 { margin: 0 0 4px; font: 500 20px var(--f-d); color: var(--hd); display: flex; justify-content: space-between; } .cgrid h4 .mono { font-size: 14px; color: var(--gold); }
+.cgrid ul { list-style: none; margin: 10px 0 0; padding: 0; } .cgrid li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; } .cgrid li .mono { color: var(--mut); }
+.crit > p { padding: 0 18px 14px; }
+
+/* released / locked sessions */
+.chip.lock{opacity:.38;border-style:dashed}
+.card.locked{max-width:640px}
+.upcoming{list-style:none;padding:0;margin:.5rem 0 0}
+.upcoming li{padding:.45rem 0;border-top:1px solid var(--line,#2E363D)}
+.upcoming .mono{margin-right:.5rem}
+
+/* drafts */
+.pill.sd { color: var(--mut); border-style: dashed; }
+.draftnote { color: var(--gold); margin: 0 0 .6rem; }
+.bbody .row .btn.small + .btn.small { margin-left: .5rem; }
+
+.fb.cm { border-left-color: var(--mut); }
+
+/* plan workflow */
+.psteps{display:flex;flex-wrap:wrap;gap:8px 20px;list-style:none;padding:0;margin:14px 0 0;font-size:12px;color:var(--mut)}
+.psteps li.on{color:var(--gold)} .psteps li.done{color:var(--ok)} .psteps li.done::before{content:'✓ '}
+.missing{columns:2;column-gap:32px;padding-left:18px;color:var(--mut)}
+.psec-w h3 .mono{color:var(--gold);margin-right:6px}
+.psec-w details.mat{margin:8px 0 12px} .psec-w details.mat dl{margin:8px 0 0}
+.ownw{display:grid;gap:6px;margin-top:10px} .ownw textarea{width:100%}
+.fingrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px 16px;margin:8px 0 16px}
+.fingrid label{display:grid;gap:4px;font-size:13px;color:var(--mut)}
+.fin .tbl{overflow-x:auto} .fin table td,.fin table th{white-space:nowrap;text-align:right} .fin table td:first-child,.fin table th:first-child{text-align:left}
+td.neg{color:var(--rev)}
+#plan-doc h2,#plan-doc h3,#plan-doc h4{font-family:'EB Garamond',Georgia,serif;font-weight:500}
+@media (max-width:640px){.missing{columns:1}}
+
+/* plan gate: progress per session */
+.pgate > .row{justify-self:stretch;width:100%} .pgate .big{margin:6px 0 0} .pgnote{max-width:420px;text-align:right}
+.ptiles{justify-self:stretch;width:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:18px}
+.ptile{display:grid;gap:6px;padding:12px 14px;border:1px solid var(--line);text-decoration:none;color:var(--fg)}
+.ptile:hover{border-color:var(--gold);text-decoration:none} .ptile:hover *{text-decoration:none} .ptile strong{font-weight:500;font-size:14px;line-height:1.3}
+.ptile .mono{color:var(--mut)} .ptile.full .mono{color:var(--ok)} .ptile.later{opacity:.45}
+.pmeter{height:3px;background:var(--line);display:block} .pmeter i{display:block;height:100%;background:var(--gold)} .ptile.full .pmeter i{background:var(--ok)}
+.matprev summary{cursor:pointer} .matprev[open] summary{margin-bottom:12px}
+@media (max-width:640px){.pgnote{text-align:left}}
+
+.privacy{margin:28px 0 0;padding:18px 0 0;border-top:1px solid var(--line);max-width:760px}
+.privacy ul{margin:8px 0 0;padding-left:18px;display:grid;gap:6px;color:var(--mut);font-size:14px;line-height:1.5}
+
+/* file-based workflow */
+.filebar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px 24px;padding:14px 18px;margin:0 0 18px;border:1px solid var(--line)}
+.filebar p{margin:2px 0 0;max-width:720px;font-size:14px;color:var(--mut)} .filebar.due{border-color:var(--gold)} .filebar b{color:var(--gold)}
+.rtools{margin:0 0 24px} .rtools > .row{justify-self:stretch;width:100%;flex-wrap:wrap;gap:12px}
+
+/* guides: quiet, collapsed */
+details.guide{margin:0 0 18px;max-width:820px}
+details.guide summary{cursor:pointer;color:var(--mut);font-size:12px;letter-spacing:.08em;list-style:none}
+details.guide summary::before{content:'+ ';color:var(--gold)} details.guide[open] summary::before{content:'– '}
+details.guide ol{margin:12px 0 8px;padding-left:20px;display:grid;gap:8px;font-size:14px;line-height:1.55;color:var(--fg)}
+.rtools details.guide{margin:14px 0 0} .gguide{margin:24px 0 0}
+
+/* credo adaptation + beta tag */
+.credo del,.credo-band del{color:var(--mut);text-decoration-thickness:1px}
+.credo ins,.credo-band ins{text-decoration:none;color:var(--gold)}
+.beta{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);padding:1px 5px;margin-left:8px;vertical-align:middle;line-height:1.4}
+
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="#/"><span class="mark mono">ECL</span><span>Unicorn Logbook</span><span class="beta">Beta</span></a>
+  <nav class="nav mono"><a href="#/" data-p="" id="navhome">Sign in</a></nav>
+</div></header>
+<main id="main" class="wrap"><p class="muted mono">Loading …</p></main>
+<footer class="foot"><div class="wrap"><span>Entrepreneurship Challenge Lab · MU × Odoo</span><button class="link" id="adm">Lecturer/Odoo</button></div></footer>
+<script id="ecl-data" type="application/json">{"v":1,"current":"S05","published":null,"keys":{"lecturer":{"s":"bHWq6czkCcOx/9a+VABmdg==","i":"oisW2RHOnQWG8VJm","c":"DEfw9W68fwyUgkKnZq2EsolckOGJbiR3uhz73596JsBnIxxnfHydnWWlO07LBXU60bE1HUCw4WazlD+Au0nxTZq35gXmOKFIHwYfyIF/fY7RH7qGCNIOZqyHkLjyKwzk8CJAA0/rkwEgjuJa88HOXt+pwDu+uqFfV/U9K6FaY1MPiFRaD9lR9ukXj2+EJGDy0NcniFh5YJhsthzuUpCxpviPz50NRy+DZ5MqBrg2yG62fyuKifT0gCSayXiv7jy4KfBC7BRuzuGPifY+PFIU2VF1W2r/O9jAtSJMdOwFNNGFcDMuZq54uZjVXqYHkJIF8MArz/piYlmTdl2IkEKmVzKzVUUYNg1XVjXd4dgcGjweSFYWFQYcxEZZPCJaJlrhWn0qZ7gJ9V2MENRAwLfhkmnHRg=="},"partner":{"s":"e2VivFe5eWduhUCmOWPxUw==","i":"SU+y1ZDhw2mW2L/L","c":"CdD/WxgjzMYWd4xwrVH4Zh60fSm1XuBThCCLRWyxkfO9Nc0ErNg1cnNdmuP2M4CAXu1p2embaaJQmryJprTyJW4NizPKrrHcgSrOig2/EiOfeVsplSIrddFDO3UjkP06+Yvr20pQiW2P9pNi9x5QS7a/RRAaCLLL79NNiXdLr08UZPanT24s07XVQ/JhvOV/C7p3gZ0EYgqY+HT8WncN6CJ/nOa5LyiraJOhFax9vQsm/tBD+FoQtAdr7fsM8hcLdD3dWyWAYJ4boxWCIuiJswmmkXOMessoA1d/lDAGT62Gf9MfnmaKWSDVZm0iYmcy2dyRGRLt9jkzwPii+VgVoF+POFdf1MiZLyPlt00BJmjfYjIiJpU+tPRDIhyTZ6MS8nS8NgbeCU2jkizUOzEbi+0gOg=="}},"ventures":[{"id":"v01","blob":{"s":"N7mRmxk9m+Qv948NNCBHcA==","i":"gc3sDh6gOcXUkJ9k","c":"lWjDMnxi1uO1syndvCCfUVA3JEiTLpicvg=="}},{"id":"v02","blob":{"s":"v+4XwjMOCzRU4/MrQwldBQ==","i":"lnMwOUiwT7zqWjLB","c":"KqUK6/kNSBd7fAEJH74x2QG0SMpIoBUF8g=="}},{"id":"v03","blob":{"s":"/ux5bZMMCaF+/XslWgoUzg==","i":"KuoI78saoFphc6Ub","c":"86gLLnDoYw8LAxqIBUapSKeZ044SpGirHw=="}},{"id":"v04","blob":{"s":"YnXtWV0xBmQgWE60pLRP7w==","i":"9mVyJ/rBmthsODAl","c":"Sj/TugoSANQKeMrFkcj1qZwDTZ7ksHZsfQ=="}},{"id":"v05","blob":{"s":"UokG0CEDBW1KCVdEho5P1w==","i":"nDkPTJKnEIHwlNx9","c":"VtS/9yr4KwUyE3W99JJrpUhHXRdNGkxDng=="}},{"id":"v06","blob":{"s":"BHQeiaxCaEKb6sG2hwZptA==","i":"K9DF14UlGWLyOg3T","c":"xH0QmaCwRM66oK/F3pCjs81lApZxRCaALg=="}},{"id":"v07","blob":{"s":"B9n43KnqcOasskpuIUkO2Q==","i":"a5W706AjN/fXDHAZ","c":"dzQOoCiNABbEjb6iegS6md6cf5wx9OBarw=="}},{"id":"v08","blob":{"s":"0mE154G26tQ16zRoPM6bZA==","i":"Du5mzk4KUlSA1rLY","c":"rlVsXeLviVeLXAIbi83X7IH007u5J8AHDA=="}},{"id":"v09","blob":{"s":"AIoM9Cj29qmjO78lJ5UZmQ==","i":"QZboJwTiGe203RMW","c":"PM54oPAcuymru9lDwzgGOJ2QH5xhmw93Pg=="}},{"id":"v10","blob":{"s":"q9ue84Uj4cojlFf1p5c2EQ==","i":"3A3yaCooo2Wnh/bZ","c":"nY2exOPF/TumEEfMEmPNcIfeNnd7L2NhcA=="}}]}</script>
+<script>
+// Course content. Edit tasks, briefs, plan sections and materials here — no code needed.
+// Sessions marked draft: true are proposals (the four Odoo-led sessions): align briefs and tasks with the Odoo partner.
+// task track: 'users' (getting users) · 'product' (building product) · 'plan' (thinking/writing)
+// material: [{ label: 'Slides S04', url: 'https://…' }]
+window.ECL_COURSE = {
+  title: 'Unicorn Logbook',
+  course: 'Entrepreneurship Challenge Lab',
+  term: 'MU × Odoo · Winter 2026',
+  claim: 'Scale attention, not busyness.',
+  credo: 'The most important tasks for an early stage company are to write code and talk to users.',
+  credoSource: 'Y Combinator, “YC’s Essential Startup Advice”',
+  credoAdapted: 'talk to users, decide on evidence, and build', // how this lab reads it
+  credoAdaptedSource: 'adapted for the Entrepreneurship Challenge Lab',
+  current: 'S05', // released up to this session until the lecturer sets it in the dashboard
+  focusTarget: 80, // % of founder hours on users + product
+
+  path: [
+    { name: 'Understand', sessions: ['S01', 'S02'] },
+    { name: 'Set up', sessions: ['S03', 'S04', 'S05', 'S06'] },
+    { name: 'Deliver', sessions: ['S07', 'S08', 'S09'] },
+    { name: 'Operate', sessions: ['S10', 'S11', 'S12'] },
+    { name: 'Demonstrate', sessions: ['S13'] },
+    { name: 'Scale', sessions: ['S14', 'S15'] }
+  ],
+
+  moves: [
+    { id: 'persevere', label: 'Persevere' },
+    { id: 'narrow', label: 'Narrow' },
+    { id: 'pivot', label: 'Pivot' },
+    { id: 'pause', label: 'Pause' }
+  ],
+  ladder: ['1 · Opinion', '2 · Story (specific past behaviour)', '3 · Workaround (already spend time or money)', '4 · Commitment (email, meeting, pre-order, intro)', '5 · Payment'], // the evidence ladder from the Customer Validation deck
+
+  // Traction kinds. sum: how the dashboard totals them
+  traction: {
+    users: [
+      { id: 'conversation', label: 'Customer conversations', unit: 'people' },
+      { id: 'commitment', label: 'Commitments (deposit, pre-order, LOI)', unit: 'commitments' },
+      { id: 'customer', label: 'Paying customers', unit: 'customers' },
+      { id: 'revenue', label: 'Revenue', unit: '€' }
+    ],
+    product: [
+      { id: 'shipped', label: 'Shipped (MVP version, feature)', unit: 'releases' },
+      { id: 'odoo', label: 'Odoo milestone (product, quote, order, invoice …)', unit: 'milestones' },
+      { id: 'experiment', label: 'Experiment run', unit: 'experiments' }
+    ]
+  },
+
+  // Demo Day: the venture is judged on whether its three logics fit together (S01 · Your challenge)
+  demoDay: {
+    session: 'S13', date: '14 Jan 2027',
+    checks: [
+      { id: 'customer', label: 'Customer logic', briefs: ['S01', 'S02', 'S04'] },
+      { id: 'value', label: 'Value logic', briefs: ['S02', 'S05'] },
+      { id: 'operating', label: 'Operating logic', briefs: ['S03', 'S07', 'S10'] },
+      { id: 'evidence', label: 'Evidence at ladder step 3 or higher', ladder: 3 },
+      { id: 'live', label: 'Venture running in Odoo (quote → invoice)', traction: ['odoo', 3] }
+    ]
+  },
+
+  sessions: {
+    S01: { date: '08 Oct', lead: 'MU + Odoo', title: 'Kick-off · Challenge · Odoo',
+      brief: { name: 'Solopreneur Operating Hypothesis', fields: [
+        ['Customer', 'My first customer is …'],
+        ['Value', 'They pay because …'],
+        ['Flow', 'To deliver that value, the venture must …'],
+        ['Bottleneck', 'As one founder, I am most likely to break at …'],
+        ['System', 'The first process I would systematize is … because …']] },
+      tasks: [
+        ['Speak to three to five plausible customers or users', 'users'],
+        ['Document what they currently do instead of your proposed solution', 'users'],
+        ['Identify one assumption that became weaker after the conversations', 'plan'],
+        ['Revise your Solopreneur Operating Hypothesis', 'plan'],
+        ['Bring evidence (quotes, behaviour, alternatives, friction), not a pitch deck', 'users']] },
+    S02: { date: '15 Oct', lead: 'MU', title: 'Opportunity to Product',
+      brief: { name: 'Product-Service Brief', fields: [
+        ['Customer situation', 'When [customer] tries to [get something done] in [context] …'],
+        ['Problem + consequence', 'Friction, consequence, current response'],
+        ['Current alternative', 'The workaround you compete with'],
+        ['Value proposition', 'We help [customer] move from [current struggle] to [better outcome]'],
+        ['First product or service', 'Promise, boundary, delivery'],
+        ['Odoo-ready spec', 'Name · type · customer · price logic · delivery flow · evidence']] },
+      gate: ['Clear', 'Specific', 'Operable', 'Priceable', 'Testable'],
+      tasks: [
+        ['Complete the Product-Service Brief v1', 'plan'],
+        ['Work out one example customer scenario', 'users'],
+        ['Draft one price logic', 'product'],
+        ['Sketch one simple delivery flow', 'product'],
+        ['Prepare one question for Verena about Odoo', 'product']] },
+    S03: { date: '22 Oct', lead: 'Odoo', title: 'Odoo Setup · Product Logic',
+      brief: { name: 'Odoo Setup Note', fields: [
+        ['Product in Odoo', 'Name and type as configured'],
+        ['Price logic', 'As entered in Odoo'],
+        ['Delivery flow', 'Steps as configured'],
+        ['Open question', 'What did not fit the software yet?']] },
+      tasks: [['Create your product in Odoo', 'product']] },
+    S04: { date: '29 Oct', lead: 'MU', title: 'Customer Validation',
+      brief: { name: 'Customer Validation Brief', fields: [
+        ['Critical assumption', 'Written to be proven wrong'],
+        ['Target customer', 'Five names or places'],
+        ['Test protocol', 'Five questions, no pitch'],
+        ['Evidence threshold', 'Rung of the evidence ladder and number'],
+        ['Decision rule', 'One if-then sentence'],
+        ['Change to the offer', 'After the interviews → S05']] },
+      tasks: [
+        ['Talk to five plausible customers, using your protocol', 'users'],
+        ['Note exact quotes and behaviours, word for word what the last solution cost them', 'users'],
+        ['Place every signal on the evidence ladder', 'users'],
+        ['Apply your decision rule and revise the Product-Service Brief', 'plan'],
+        ['Bring one decision: persevere, narrow, pivot or pause', 'plan']] },
+    S05: { date: '05 Nov', lead: 'MU', title: 'Business Model · Economics',
+      brief: { name: 'Business Model & Economics Brief', fields: [
+        ['One-page model', 'Every box tagged E (evidence) or A (assumption)'],
+        ['Revenue logic', 'Stream, payer, pattern'],
+        ['Price + anchor', 'With its source'],
+        ['Unit economics', 'Per customer and per founder hour'],
+        ['Default-alive line', 'And capacity check'],
+        ['Riskiest economic assumption', 'From the Investor Room → S06']] },
+      tasks: [
+        ['Ask three plausible customers to commit at your price: deposit, pre-order, paid pilot or LOI', 'users'],
+        ['Log every answer on the evidence ladder, every “no” with its reason', 'users'],
+        ['Enter sales price and cost on your Odoo product', 'product'],
+        ['Update your logbook: model v1, corridor, napkin numbers', 'plan'],
+        ['Draft one experiment for your riskiest economic assumption', 'product']] },
+    S06: { date: '12 Nov', lead: 'MU', title: 'Product · MVP · Experimentation',
+      brief: { name: 'Experiment Brief', fields: [
+        ['Assumption under test', 'From your business model (riskiest economic assumption)'],
+        ['MVP', 'Form, who sees it, when'],
+        ['Threshold', 'Number and deadline, fixed before the test'],
+        ['Result', 'After the test: what happened, with numbers'],
+        ['Decision', 'After the test: persevere, narrow, pivot or pause']] },
+      tasks: [
+        ['Ship the smallest version of your MVP', 'product'],
+        ['Put it in front of at least five real people outside the course', 'users'],
+        ['Enter every pre-sale or deposit in Odoo as a contact and a quotation', 'product'],
+        ['Log results, your weekly hours, then fields 04 and 05', 'plan']] },
+    S07: { date: '19 Nov', lead: 'Odoo', title: 'From Sale to Delivery', draft: true,
+      brief: { name: 'Order-to-Cash Note', fields: [
+        ['Flow in Odoo', 'Quote → order → delivery → invoice'],
+        ['First break', 'Where it broke'],
+        ['Fix', 'What you changed']] },
+      tasks: [['Run one real or test order from quote to invoice in Odoo', 'product']] },
+    S08: { date: '26 Nov', lead: 'MU', title: 'Growth · Go-to-Market',
+      brief: { name: 'Go-to-Market Brief', fields: [
+        ['Channel', 'One channel, with the customer’s reason'],
+        ['First ten customers', 'By name, role or place'],
+        ['Conversion step', 'The step where people drop out'],
+        ['Metric', 'The one number you log weekly']] },
+      tasks: [
+        ['Contact all ten with your one sentence; log every reply, including silence', 'users'],
+        ['Run three channel tests, each under 50 euros', 'users'],
+        ['Set up your pipeline stages in Odoo and move every lead', 'product'],
+        ['Log your weekly number and your hours', 'plan']] },
+    S09: { date: '03 Dec', lead: 'MU', title: 'Organisation · Operating Model',
+      brief: { name: 'Operating Model Brief', fields: [
+        ['Founder week', 'Hours per function, today and at triple volume'],
+        ['What should still require me?', 'The circled list'],
+        ['Automate or delegate', 'Three automations with fallbacks, plus your key sentence']] },
+      tasks: [
+        ['Build one automation so that it runs without you', 'product'],
+        ['Keep contacting your first ten; log every reply and loss reason', 'users'],
+        ['Pick one real case to run end to end in the Odoo session', 'product'],
+        ['Log your hours: did the automation change them?', 'plan']] },
+    S10: { date: '10 Dec', lead: 'Odoo', title: 'Run & Integrate the Venture', draft: true,
+      brief: { name: 'Integration Note', fields: [
+        ['End-to-end run', 'One real case through the whole system'],
+        ['Broken link', 'Where data or work got lost'],
+        ['Fix', '']] },
+      tasks: [['Run one case end to end in Odoo', 'product']] },
+    S11: { date: '17 Dec', lead: 'MU', title: 'Responsible Entrepreneurship',
+      brief: { name: 'Responsibility Brief', fields: [
+        ['Who could be harmed', 'And whether you act, influence or monitor'],
+        ['Data and trust', 'What you collect, where, until when'],
+        ['Safeguard', 'One measure and what it costs']] },
+      tasks: [
+        ['Implement your safeguard and your data map in Odoo and your tools', 'product'],
+        ['Keep your pipeline moving; log every order and every loss', 'users'],
+        ['List every euro in and out since the start, for the funding session', 'plan'],
+        ['Log your weekly hours, also over the break', 'plan']] },
+    S12: { date: '07 Jan', lead: 'MU', title: 'Funding · Financial Strategy',
+      brief: { name: 'Funding Brief', fields: [
+        ['Cash and runway', 'Months left, default alive or dead (with and without your own salary)'],
+        ['Capital need', 'Amount, three uses, one milestone and the month you reach it'],
+        ['Funding path', 'Source, first step, and what you give up']] },
+      tasks: [
+        ['Prepare a live walk-through of one real order in Odoo', 'product'],
+        ['Bring your strongest evidence: a customer, a payment, a quote', 'users'],
+        ['Take the first step of your funding path and log the answer', 'plan'],
+        ['Close every open brief field before Demo Day', 'plan']] },
+    S13: { date: '14 Jan', lead: 'Odoo + MU', title: 'Demo Day', exam: true,
+      brief: { name: 'Demo Day Pitch', fields: [
+        ['Claim', 'One sentence: who, what, why now'],
+        ['Evidence', 'Your strongest signal and its ladder step'],
+        ['Demo', 'One real order, live in Odoo: quote to invoice'],
+        ['Ask', 'What you need from the room']] },
+      tasks: [
+        ['Note what broke or felt slow in your demo', 'product'],
+        ['Turn the best “I still wonder” card into your next test', 'users'],
+        ['Imagine ten times the orders: where does it break first?', 'product'],
+        ['Log your Demo Day result and the feedback you received', 'plan']] },
+    S14: { date: '21 Jan', lead: 'Odoo', title: 'Scale the Venture', draft: true,
+      brief: { name: 'Scale Note', fields: [
+        ['What breaks at 10×', ''],
+        ['System lever', 'What scales without more of your attention']] },
+      tasks: [] },
+    S15: { date: '28 Jan', lead: 'MU', title: 'Retrospective · Transfer',
+      brief: { name: 'Transfer Note', fields: [
+        ['What I learned', 'Three lessons, each pointing to a logbook entry'],
+        ['Decision on the venture', 'Continue, pause or stop, one reason, one first step'],
+        ['Transfer', 'One method, one concrete place in the next year']] },
+      tasks: [
+        ['Generate your business plan and keep a copy', 'plan'],
+        ['Export your Odoo data before course access ends', 'product']] }
+  },
+
+  // Assessment: shown in each founder's profile once confirmed: true. Until then only reviewers see it (marked Draft).
+  assessment: {
+    confirmed: false,
+    summary: 'Demo Day + documentation (Unicorn Logbook)',
+    parts: [
+      { name: 'Demo Day', weight: 60, what: 'Live presentation of your operating venture, with a demo in Odoo and questions from the jury.',
+        criteria: [['Fit of customer, value and operating logic', 20], ['Evidence from real customer behaviour', 15], ['Operating proof in Odoo (quote → invoice)', 15], ['Clarity and answers to the jury', 10]] },
+      { name: 'Documentation', weight: 40, what: 'Your Unicorn Logbook: briefs, traction and decisions over the semester.',
+        criteria: [['Briefs complete and revised after feedback', 15], ['Traction log: users and product, verifiable', 15], ['Decisions with reasons (moves, focus, what you dropped)', 10]] }
+    ],
+    note: 'The optional business plan review is an extra service and does not count towards your grade.'
+  },
+
+  // Business plan: assembled from brief fields [session, field index]. auto: generated from logbook data.
+  plan: [
+    { title: 'Executive summary', auto: 'summary', from: [['S13', 0], ['S13', 3]] },
+    { title: 'Customer and problem', from: [['S01', 0], ['S02', 0], ['S02', 1], ['S02', 2]] },
+    { title: 'Offer and value', from: [['S01', 1], ['S02', 3], ['S02', 4]] },
+    { title: 'Evidence', auto: 'users', from: [['S04', 0], ['S04', 3], ['S04', 4], ['S04', 5], ['S06', 3], ['S13', 1]] },
+    { title: 'Business model and economics', from: [['S05', 0], ['S05', 1], ['S05', 2], ['S05', 3], ['S05', 4]] },
+    { title: 'Product and MVP', auto: 'product', from: [['S06', 1], ['S06', 4]] },
+    { title: 'Operations in Odoo', from: [['S01', 2], ['S02', 5], ['S03', 0], ['S03', 2], ['S07', 0], ['S07', 2], ['S10', 0], ['S10', 2]] },
+    { title: 'Go-to-market', from: [['S08', 0], ['S08', 1], ['S08', 2], ['S08', 3]] },
+    { title: 'Founder and operating model', auto: 'focus', from: [['S01', 4], ['S09', 0], ['S09', 1], ['S09', 2]] },
+    { title: 'Responsibility', from: [['S11', 0], ['S11', 1], ['S11', 2]] },
+    { title: 'Funding and runway', from: [['S12', 0], ['S12', 1], ['S12', 2]] },
+    { title: 'Risks and scale', from: [['S01', 3], ['S05', 5], ['S14', 0], ['S14', 1]] }
+  ]
+};
+Object.values(window.ECL_COURSE.sessions).forEach(s => { s.material = s.material || []; s.tasks = s.tasks || []; });
+// Slide decks (claude.ai). Students can open them only after you share each deck from its Share menu.
+Object.entries({
+  S01: 'https://claude.ai/artifact/Upifr9LNhUjxdxX32eTLzw',
+  S02: 'https://claude.ai/artifact/TAE4AAx66P2NCNNRzEqxmY',
+  S04: 'https://claude.ai/artifact/X5ciuaZaQMgSPG3r654BsY',
+  S05: 'https://claude.ai/artifact/GUMe9qiMqBREw9yaLTJFuj',
+  S06: 'https://claude.ai/artifact/HFXYZxRhzDxUTUeYq3Mqsn',
+  S08: 'https://claude.ai/artifact/GQv5LaVNSDFdFo4BjY6R7x',
+  S09: 'https://claude.ai/artifact/HVR2LEMgxhjjTgw2kXWqyq',
+  S11: 'https://claude.ai/artifact/3inN2Dmor5sZzi3XkHpP4J',
+  S12: 'https://claude.ai/artifact/PxEf2PefDtVoctijmgchGm',
+  S13: 'https://claude.ai/artifact/PS4TJvTmThFBKiyAQoQGou',
+  S15: 'https://claude.ai/artifact/Y7RyZ4a4CPBkv5j7Xz7RBp'
+}).forEach(([id, url]) => window.ECL_COURSE.sessions[id].material.unshift({ label: 'Session slides', url }));
+
+</script>
+<script>
+(() => {
+'use strict';
+const C = window.ECL_COURSE;
+const SIDS = Object.keys(C.sessions);
+const KINDS = [...C.traction.users.map(k => ({ ...k, track: 'users' })), ...C.traction.product.map(k => ({ ...k, track: 'product' }))];
+const TRACK = { users: 'Getting users', product: 'Building product', plan: 'Thinking it through' };
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = {
+  get(k, d, ss) { try { const v = (ss ? sessionStorage : localStorage).getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v, ss) { try { (ss ? sessionStorage : localStorage).setItem(k, JSON.stringify(v)); } catch {} }
+};
+const norm = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const FRAMED = (() => { try { return window.self !== window.top; } catch { return true; } })();
+
+let DB = { ventures: [], log: [] }, IDX = {}, HIST = {}, INFO = {};
+let admin = store.get('ecl-admin', null, true); // { key, role }
+let me = store.get('ecl-me', null); // { vid, code } – founder signed in on this device
+const editing = new Set(), openHist = new Set(), writing = new Set(), openBriefs = new Set(), closedBriefs = new Set();
+// Remember which briefs the user opened or closed, so a re-render keeps them as they were.
+document.addEventListener('toggle', e => { const el = e.target; if (!el.matches?.('details.brief')) return; const k = (route().id || me?.vid) + '|' + el.id.slice(2); if (el.open) { openBriefs.add(k); closedBriefs.delete(k); } else { openBriefs.delete(k); closedBriefs.add(k); } }, true);
+
+/* ---------- Dates ---------- */
+function isoWeek(d = new Date()) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return t.getUTCFullYear() + '-W' + String(Math.ceil(((t - y0) / 864e5 + 1) / 7)).padStart(2, '0');
+}
+function lastWeeks(n) { const out = []; for (let i = n - 1; i >= 0; i--) out.push(isoWeek(new Date(Date.now() - i * 7 * 864e5))); return out; }
+const today = () => new Date().toISOString().slice(0, 10);
+
+/* ---------- Data ---------- */
+const ROLE_NAME = { lecturer: 'Lecturer', partner: 'Odoo' };
+/* ---------- Storage without a server ----------
+ * Founders: their logbook lives in this browser (IndexedDB) and travels as a "logbook file"
+ *   (download → load on another device, and e-mail it to the lecturer as submission).
+ * Reviewers: import logbook files, give feedback here, then download an updated index.html.
+ *   That file carries the feedback encrypted per venture code (AES-GCM, PBKDF2), like the PT feedback page. */
+const SOURCE = '<!doctype html>\n' + document.documentElement.outerHTML; // pristine copy for "publish"
+const PUB = JSON.parse(document.getElementById('ecl-data').textContent);
+const enc = new TextEncoder(), dec = new TextDecoder();
+const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function aesKey(pass, salt) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(norm(pass)), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function seal(obj, pass) {
+  const s = crypto.getRandomValues(new Uint8Array(16)), i = crypto.getRandomValues(new Uint8Array(12));
+  const c = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: i }, await aesKey(pass, s), enc.encode(JSON.stringify(obj)));
+  return { s: b64(s), i: b64(i), c: b64(new Uint8Array(c)) };
+}
+async function open_(blob, pass) {
+  try { const p = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(blob.i) }, await aesKey(pass, unb64(blob.s)), unb64(blob.c)); return JSON.parse(dec.decode(p)); } catch { return null; }
+}
+// Small key-value store: IndexedDB where available (room for PDFs), memory otherwise.
+const KV = (() => {
+  const mem = {}; let dbp = null;
+  try { dbp = new Promise((res, rej) => { const r = indexedDB.open('ecl-logbook', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }).catch(() => null); } catch { dbp = Promise.resolve(null); }
+  const tx = async (mode, fn) => { const db = await dbp; if (!db) return undefined; return new Promise(res => { try { const t = db.transaction('kv', mode), q = fn(t.objectStore('kv')); t.oncomplete = () => res(q?.result); t.onerror = () => res(undefined); } catch { res(undefined); } }); };
+  return {
+    async get(k) { if (k in mem) return mem[k]; const v = await tx('readonly', s => s.get(k)); if (v !== undefined) mem[k] = v; return v; },
+    async set(k, v) { mem[k] = v; await tx('readwrite', s => s.put(v, k)); }
+  };
+})();
+const ventureList = () => PUB.ventures.map(x => ({ id: x.id, venture: 'Venture ' + x.id.slice(1) }));
+const sameEntry = (a, b) => a.ts === b.ts && a.type === b.type && a.key === b.key && a.author === b.author && a.team === b.team;
+const mergeLogs = (...lists) => { const out = []; lists.flat(Infinity).forEach(e => { if (e && !out.some(x => sameEntry(x, e))) out.push(e); }); return out.sort((a, z) => a.ts < z.ts ? -1 : 1); };
+const PUBFB = {}; // decrypted published feedback per venture
+async function publishedFor(vid, code) { if (!PUBFB[vid]) { const x = PUB.ventures.find(v => v.id === vid); const o = x && await open_(x.blob, code); PUBFB[vid] = o ? o.fb || [] : []; } return PUBFB[vid]; }
+let CODES = null; // reviewers only: { vid: code }
+const courseEntry = () => ({ ts: PUB.published || '2026-11-12T00:00:00Z', team: '_course', type: 'course', key: 'current', value: PUB.current || C.current, author: 'Lecturer' });
+
+const Local = {
+  async check(b) {
+    if (b.adminKey) {
+      for (const role of ['lecturer', 'partner']) { const o = await open_(PUB.keys[role], b.adminKey); if (o) { CODES = o.codes; return { ok: true, role }; } }
+      return { ok: true, role: null };
+    }
+    for (const x of PUB.ventures) if (await open_(x.blob, b.code)) return { ok: true, venture: x.id };
+    return { ok: true, venture: null };
+  },
+  async read() {
+    const ventures = ventureList();
+    if (admin) {
+      if (!CODES) { const o = await open_(PUB.keys[admin.role], admin.key); if (!o) return { ok: false, error: 'Key not valid' }; CODES = o.codes; }
+      const subs = (await KV.get('review-subs')) || {}, own = (await KV.get('review-fb')) || [];
+      const pubs = await Promise.all(ventures.map(v => publishedFor(v.id, CODES[v.id])));
+      const log = mergeLogs([courseEntry()], ventures.map(v => (subs[v.id]?.log || []).filter(e => e.type !== 'draft')), pubs, own);
+      return { ok: true, ventures, log };
+    }
+    if (me) {
+      const mine = (await KV.get('log-' + me.vid)) || [];
+      return { ok: true, ventures: ventures.filter(v => v.id === me.vid), log: mergeLogs([courseEntry()], mine, await publishedFor(me.vid, me.code)) };
+    }
+    return { ok: true, ventures: [], log: [courseEntry()] };
+  },
+  async write(b) {
+    const author = admin ? ROLE_NAME[admin.role] : 'Founder', e = { ts: new Date().toISOString(), team: b.team, type: b.type, key: b.key, value: b.value, author };
+    if (admin) {
+      if (!['feedback', 'course'].includes(b.type)) return { ok: false, error: 'Reviewers only give feedback here.' };
+      if (b.type === 'course' && admin.role !== 'lecturer') return { ok: false, error: 'Lecturer key required' };
+      const own = (await KV.get('review-fb')) || []; own.push(e); await KV.set('review-fb', own); return { ok: true, author, ts: e.ts };
+    }
+    if (!me || me.vid !== b.team) return { ok: false, error: 'Please sign in with your access code.' };
+    const log = (await KV.get('log-' + me.vid)) || []; log.push(e); await KV.set('log-' + me.vid, log); return { ok: true, author, ts: e.ts };
+  },
+  async upload(b) {
+    if (!me || me.vid !== b.team) return { ok: false, error: 'Please sign in with your access code.' };
+    const id = 'f' + Date.now(), files = (await KV.get('files-' + me.vid)) || {}; files[id] = { name: b.name, data: b.data }; await KV.set('files-' + me.vid, files);
+    const r = await this.write({ team: b.team, type: 'planpdf', key: 'pdf', value: JSON.stringify({ id, name: b.name, size: b.size }) });
+    return { ...r, id };
+  },
+  async file(b) {
+    if (admin) { const subs = (await KV.get('review-subs')) || {}; for (const s of Object.values(subs)) if (s.files?.[b.id]) return { ok: true, data: s.files[b.id].data }; }
+    if (me) { const f = ((await KV.get('files-' + me.vid)) || {})[b.id]; if (f) return { ok: true, data: f.data }; }
+    return { ok: false, error: 'This PDF is not on this device. Load the logbook file first.' };
+  }
+};
+async function api(body) {
+  try { return await (Local[body.action] ? Local[body.action](body) : { ok: false, error: 'Unknown action' }); }
+  catch (x) { return { ok: false, error: 'Something went wrong: ' + x.message }; }
+}
+
+
+/* YC credo, shown with the lab's adaptation: original struck through, new reading after it */
+const credoHTML = () => { const m = C.credo.match(/^(.*are to )(.*?)(\.?)$/); return m && C.credoAdapted ? `“${esc(m[1])}<del>${esc(m[2])}</del> <ins>${esc(C.credoAdapted)}</ins>${m[3]}”` : `“${esc(C.credo)}”`; };
+const credoCite = () => esc(C.credoSource) + (C.credoAdapted ? ' · ' + esc(C.credoAdaptedSource) : '');
+/* Step-by-step guides (collapsed by default) */
+const GUIDE_FOUNDER = `<details class="guide"><summary class="mono">How it works · step by step</summary><ol>
+  <li><b>Sign in</b> with your personal access code. The first time, give your venture a working name; you can change it later with “Edit name”.</li>
+  <li><b>Start with S01.</b> Open a session in the Logbook tab and click <i>Write brief</i>. Every field has a hint. Your text is saved as a draft while you type.</li>
+  <li><b>Submit</b> a brief with “Submit for feedback” when it is ready. You can revise and submit again; earlier versions stay in the history.</li>
+  <li><b>Tick your tasks</b> under each brief and set your <i>Move</i> and <i>Evidence</i> at the top of your venture page.</li>
+  <li><b>Log every week</b> in “Users &amp; product”: your hours (users, product, other) and what you did, e.g. three conversations or one release. Describe customers anonymously.</li>
+  <li><b>Download your logbook file</b> after each session and <b>e-mail it to Prof. Petzold</b>. That is your submission. The same file lets you continue on another device: “Load logbook file”.</li>
+  <li><b>Feedback</b> appears at each brief after the next update of this page. Revise, submit, send the file again.</li>
+  <li><b>Business plan:</b> once every plan field is filled, write your own sections and the financial plan, create the plan, finish it with Claude or another LLM and upload the PDF.</li>
+</ol><p class="muted small">Your entries live in this browser. Clearing the browser history deletes them, so download your file regularly. On shared computers, sign out after work.</p></details>`;
+const GUIDE_REVIEWER = `<details class="guide"><summary class="mono">How it works · step by step</summary><ol>
+  <li><b>Collect</b> the logbook files students e-mail you (one .json file per venture; a newer file contains everything of the older one).</li>
+  <li><b>Import</b> them with “Import logbook files”. Several at once are fine. The list “Waiting for your feedback” shows every submitted brief and plan without your verdict.</li>
+  <li><b>Give feedback</b> at each brief: verdict <i>Revise</i> or <i>Accepted</i> plus text. Odoo adds comments without a verdict. Business plans open as PDF in the Business plan tab.</li>
+  <li><b>Release</b> the next session under “Current session”.</li>
+  <li><b>Publish</b>: “Publish feedback · download index.html”, then upload that file to GitHub (replace the old one). Students see feedback and new sessions after reloading.</li>
+  <li><b>Comments from Odoo:</b> Verena exports her comments as a file and sends it to you; import it with the same button, then publish.</li>
+  <li><b>New page version from Claude:</b> do not upload it directly. Click “Add feedback to a new page version”, choose the new file, upload the result.</li>
+</ol><p class="muted small">Your feedback lives in this browser until you publish. Always use the same browser, and publish before switching computers.</p></details>`;
+
+/* Logbook file: one file for both moving devices and submitting by e-mail */
+function saveFile(name, text, type = 'application/json') {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+const slug = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'venture';
+async function downloadLogbook() {
+  const log = (await KV.get('log-' + me.vid)) || [], files = (await KV.get('files-' + me.vid)) || {};
+  const name = profile(vById(me.vid)).venture, ts = new Date().toISOString();
+  saveFile(`ECL-logbook-${slug(name)}-${ts.slice(0, 10)}.json`, JSON.stringify({ format: 'ecl-logbook', v: 1, venture: me.vid, name, exported: ts, log, files }));
+  await KV.set('exported-' + me.vid, ts); INFO.exported = ts; render();
+  toast('Logbook file downloaded. E-mail it to Prof. Petzold to submit.');
+}
+function pickFiles(accept, multiple) {
+  return new Promise(res => { const i = document.createElement('input'); i.type = 'file'; i.accept = accept; i.multiple = !!multiple; i.onchange = () => res([...i.files]); i.click(); });
+}
+const readText = f => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(String(fr.result)); fr.onerror = () => r(''); fr.readAsText(f); });
+async function loadLogbook() {
+  const [f] = await pickFiles('.json,application/json'); if (!f) return;
+  let x; try { x = JSON.parse(await readText(f)); } catch { toast('This is not a logbook file.', true); return; }
+  if (x.format !== 'ecl-logbook' || x.venture !== me.vid) { toast('This file belongs to another venture or is not a logbook file.', true); return; }
+  await KV.set('log-' + me.vid, mergeLogs((await KV.get('log-' + me.vid)) || [], x.log || []));
+  await KV.set('files-' + me.vid, { ...((await KV.get('files-' + me.vid)) || {}), ...(x.files || {}) });
+  toast('Logbook loaded'); await load();
+}
+async function importForReview() {
+  const fs = await pickFiles('.json,application/json', true); if (!fs.length) return;
+  const subs = (await KV.get('review-subs')) || {}; let n = 0, fb = 0, bad = 0;
+  for (const f of fs) {
+    let x; try { x = JSON.parse(await readText(f)); } catch { bad++; continue; }
+    if (x.format === 'ecl-logbook' && PUB.ventures.some(v => v.id === x.venture)) {
+      const s = subs[x.venture] || { log: [], files: {} };
+      s.log = mergeLogs(s.log, x.log || []); s.files = { ...s.files, ...(x.files || {}) }; s.imported = new Date().toISOString(); s.exported = x.exported;
+      subs[x.venture] = s; n++;
+    } else if (x.format === 'ecl-feedback') { await KV.set('review-fb', mergeLogs((await KV.get('review-fb')) || [], x.entries || [])); fb++; }
+    else bad++;
+  }
+  await KV.set('review-subs', subs);
+  toast(`${n} logbook file(s)${fb ? `, ${fb} feedback file(s)` : ''} imported${bad ? ` · ${bad} skipped` : ''}`, !!bad && !n && !fb); await load();
+}
+async function exportFeedback() {
+  const own = (await KV.get('review-fb')) || [];
+  saveFile(`ECL-feedback-${ROLE_NAME[admin.role].toLowerCase()}-${today()}.json`, JSON.stringify({ format: 'ecl-feedback', v: 1, entries: own }));
+}
+async function publish(source = SOURCE, name = 'index.html') {
+  const own = (await KV.get('review-fb')) || [], ts = new Date().toISOString();
+  const cur = [...own].reverse().find(e => e.type === 'course')?.value || PUB.current;
+  const ventures = [];
+  for (const v of PUB.ventures) {
+    const fb = mergeLogs(await publishedFor(v.id, CODES[v.id]), own.filter(e => e.team === v.id && e.type === 'feedback'));
+    ventures.push({ id: v.id, blob: await seal({ fb }, CODES[v.id]) });
+  }
+  const data = { ...PUB, current: cur, published: ts, ventures };
+  const json = JSON.stringify(data).replace(/</g, '\\u003c');
+  if (!/<script id="ecl-data" type="application\/json">/.test(source)) { toast('This is not a Unicorn Logbook page.', true); return; }
+  const html = source.replace(/(<script id="ecl-data" type="application\/json">)[\s\S]*?(<\/script>)/, (m, a, b) => a + json + b);
+  saveFile(name, html, 'text/html');
+  await KV.set('review-published', ts); INFO.published = ts; INFO.pending = 0; render();
+  toast('index.html downloaded. Upload it to GitHub to publish the feedback.');
+}
+
+async function load(silent) {
+  try {
+    const res = await api({ action: 'read', code: me?.code || '', adminKey: admin?.key || '' });
+    if (!res.ok) throw new Error(res.error || 'Access denied');
+    DB = { ventures: res.ventures || [], log: res.log || [] };
+    if (me && !admin) { const mine = (await KV.get('log-' + me.vid)) || []; INFO = { exported: await KV.get('exported-' + me.vid), changed: mine.filter(e => e.type !== 'draft').reduce((m, e) => e.ts > m ? e.ts : m, '') }; }
+    if (admin) { const subs = (await KV.get('review-subs')) || {}, own = (await KV.get('review-fb')) || [], pub = await KV.get('review-published');
+      INFO = { subs, pending: own.filter(e => !pub || e.ts > pub).length, published: pub }; }
+    if (me && !admin && !DB.ventures.some(v => v.id === me.vid)) { me = null; store.set('ecl-me', null); }
+    DB.log.forEach(e => { e.value = String(e.value ?? '').replace(/^'(?=[=+\-@])/, ''); e.key = String(e.key); });
+    index(); render();
+  } catch (e) { if (!silent) $('#main').innerHTML = `<p class="err">Could not load data. ${esc(e.message)}</p>`; }
+}
+function index() {
+  IDX = {}; HIST = {};
+  for (const e of DB.log) { const k = e.team + '|' + e.type + '|' + e.key; IDX[k] = e; (HIST[k] = HIST[k] || []).push(e); }
+}
+const get = (team, type, key) => IDX[team + '|' + type + '|' + key];
+const J = (e, d = null) => { try { return e ? JSON.parse(e.value) : d; } catch { return d; } };
+
+async function write(type, team, key, value) {
+  const v = typeof value === 'string' ? value : JSON.stringify(value);
+  const res = await api({ action: 'write', type, team, key, value: v });
+  if (!res.ok) { toast(res.error || 'Not saved', true); return false; }
+  DB.log.push({ ts: res.ts || new Date().toISOString(), team, type, key, value: v, author: res.author || '' }); index();
+  if (me && !admin && type !== 'draft') INFO.changed = res.ts; if (admin) INFO.pending = (INFO.pending || 0) + 1;
+  return true;
+}
+
+/* ---------- Derived data ---------- */
+const vById = id => DB.ventures.find(v => v.id === id);
+const profile = v => ({ venture: v.venture, oneLiner: '', ...(J(get(v.id, 'profile', 'profile')) || {}) });
+const current = () => get('_course', 'course', 'current')?.value || C.current || SIDS[0];
+// Sessions up to the current one are released to founders; reviewers see all.
+const released = sid => !!admin || SIDS.indexOf(sid) <= SIDS.indexOf(current());
+const chip = (s, cur) => `<a href="#/s/${s}" class="chip${s === cur ? ' cur' : ''}${C.sessions[s].exam ? ' ex' : ''}${released(s) ? '' : ' lock'}"${released(s) ? '' : ' title="Opens with the session"'}>${s.slice(1)}</a>`;
+const canEdit = id => (me && me.vid === id) || admin?.role === 'lecturer';
+const stageOf = sid => C.path.find(p => p.sessions.includes(sid));
+const fmt = ts => { const d = new Date(ts); return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
+const fmtDay = s => { const d = new Date(s); return isNaN(d) ? s : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }); };
+const ago = ts => { if (!ts) return '—'; const h = (Date.now() - new Date(ts)) / 36e5; return h < 1 ? 'just now' : h < 24 ? Math.floor(h) + ' h ago' : Math.floor(h / 24) + ' d ago'; };
+// One feedback thread per brief: the lecturer gives the verdict, Odoo may add comments (legacy '#odoo' keys included).
+const feedbacks = (vid, key) => [...(HIST[vid + '|feedback|' + key] || []), ...(HIST[vid + '|feedback|' + key + '#odoo'] || [])].sort((a, z) => a.ts < z.ts ? -1 : 1);
+const WHO = { Lecturer: 'Prof. Petzold', Odoo: 'Verena Göttlich · Odoo' };
+const verdictOf = (vid, key) => { const f = feedbacks(vid, key).filter(x => x.author === 'Lecturer' && (J(x, {}) || {}).verdict).pop(); return f ? { ts: f.ts, v: J(f, {}).verdict } : null; };
+const ladderOf = vid => +(get(vid, 'ladder', 'ladder')?.value) || 0;
+const kindOf = id => KINDS.find(k => k.id === id) || { id, label: id, unit: '', track: 'users' };
+function status(vid, sid) {
+  const b = get(vid, 'brief', sid);
+  if (!b) return { cls: 's0', t: 'open' };
+  const lect = verdictOf(vid, sid);
+  if (lect && lect.ts >= b.ts) return lect.v === 'ready' ? { cls: 's3', t: 'accepted' } : { cls: 's2', t: 'revise' };
+  if (feedbacks(vid, sid).some(f => f.ts >= b.ts)) return { cls: 's1', t: 'commented' };
+  return lect ? { cls: 's1', t: 'resubmitted' } : { cls: 's1', t: 'submitted' };
+}
+// Draft: saved to the server under the founder's code (any device), invisible to reviewers until submitted.
+const draftOf = (vid, sid) => { const d = get(vid, 'draft', sid), b = get(vid, 'brief', sid); return d && (!b || d.ts > b.ts) ? d : null; };
+function lastActivity(vid) { let m = ''; for (const e of DB.log) if (e.team === vid && e.ts > m) m = e.ts; return m; }
+function traction(vid) {
+  const items = [], totals = {}; KINDS.forEach(k => totals[k.id] = 0);
+  const seen = {};
+  for (const e of DB.log) if (e.team === vid && e.type === 'trac') seen[e.key] = e;
+  for (const e of Object.values(seen)) { const v = J(e); if (!v || v.deleted) continue; items.push({ key: e.key, ...v }); totals[v.kind] = (totals[v.kind] || 0) + (+v.n || 0); }
+  items.sort((a, z) => (z.date || '').localeCompare(a.date || ''));
+  return { items, totals };
+}
+function focus(vid, weeks = lastWeeks(8)) {
+  return weeks.map(w => { const v = J(get(vid, 'week', w)) || null; return { w, v, sum: v ? (+v.users || 0) + (+v.product || 0) + (+v.other || 0) : 0 }; });
+}
+function focusShare(vid, n = 4) {
+  let u = 0, p = 0, o = 0; focus(vid, lastWeeks(n)).forEach(x => { if (x.v) { u += +x.v.users || 0; p += +x.v.product || 0; o += +x.v.other || 0; } });
+  const s = u + p + o; return s ? { u: u / s * 100, p: p / s * 100, o: o / s * 100, hours: s } : null;
+}
+function readiness(vid) {
+  const t = traction(vid).totals;
+  return C.demoDay.checks.map(c => {
+    let ok = false, note = '';
+    if (c.briefs) { const st = c.briefs.map(s => status(vid, s)); ok = st.every(x => x.cls === 's3'); note = c.briefs.map((s, i) => `${s} ${st[i].t}`).join(' · '); }
+    else if (c.ladder) { const l = ladderOf(vid); ok = l >= c.ladder; note = l ? C.ladder[l - 1] : 'no evidence logged'; }
+    else if (c.traction) { const n = t[c.traction[0]] || 0; ok = n >= c.traction[1]; note = `${n} of ${c.traction[1]} Odoo milestones`; }
+    return { ...c, ok, note };
+  });
+}
+function planData(v) {
+  const vid = v.id;
+  const sections = C.plan.map(sec => {
+    const fields = sec.from.map(([sid, i]) => {
+      const s = C.sessions[sid], vals = J(get(vid, 'brief', sid), []) || [];
+      const text = (vals[i] || '').trim();
+      return { sid, i, label: s.brief.fields[i][0], text, accepted: status(vid, sid).cls === 's3' && !!text };
+    });
+    return { ...sec, fields };
+  });
+  const all = sections.flatMap(s => s.fields);
+  const filled = all.filter(f => f.text).length, accepted = all.filter(f => f.accepted).length;
+  return { sections, pct: Math.round(filled / all.length * 100), acceptedPct: Math.round(accepted / all.length * 100), filled, total: all.length };
+}
+function para(t) { return esc(t).split('\n').map(l => l.trim() ? inl(l) : '').join('<br>'); }
+function inl(s) { return s.replace(/(https?:\/\/[^\s<]+)/g, u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`); }
+const num = n => Number(n || 0).toLocaleString('en-GB');
+function toast(msg, err) {
+  const d = document.createElement('div'); d.className = 'toast' + (err ? ' err' : ''); d.setAttribute('role', 'status'); d.textContent = msg;
+  document.body.appendChild(d); setTimeout(() => d.remove(), 2600);
+}
+function modal(title, fields, ok = 'Save', intro = '') {
+  return new Promise(res => {
+    const d = document.createElement('div'); d.className = 'modal';
+    d.innerHTML = `<form class="box"><h3>${esc(title)}</h3>${intro ? `<p class="muted">${esc(intro)}</p>` : ''}${fields.map((f, i) => `<label for="m-${i}"><span>${esc(f.label)}</span>${f.options
+      ? `<select id="m-${i}" name="${f.name}">${f.options.map(o => `<option value="${esc(o[0])}"${String(o[0]) === String(f.value) ? ' selected' : ''}>${esc(o[1])}</option>`).join('')}</select>`
+      : f.area ? `<textarea id="m-${i}" name="${f.name}" rows="5">${esc(f.value || '')}</textarea>`
+      : `<input id="m-${i}" name="${f.name}" type="${f.type || 'text'}" value="${esc(f.value ?? '')}"${f.type === 'number' ? ' min="0" step="any" inputmode="decimal"' : ''} autocomplete="off">`}</label>`).join('')}
+      <div class="row end"><button type="button" class="btn ghost" data-x>Cancel</button><button class="btn">${esc(ok)}</button></div></form>`;
+    document.body.appendChild(d); d.querySelector('input,select,textarea')?.focus();
+    const close = v => { d.remove(); res(v); };
+    d.querySelector('[data-x]').onclick = () => close(null);
+    d.onclick = e => { if (e.target === d) close(null); };
+    d.addEventListener('keydown', e => { if (e.key === 'Escape') close(null); });
+    d.querySelector('form').onsubmit = e => { e.preventDefault(); close(Object.fromEntries(new FormData(e.target))); };
+  });
+}
+
+/* ---------- Small components ---------- */
+const ladderBar = n => `<span class="ladder" title="${esc(C.ladder[n - 1] || 'No evidence yet')}">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`;
+const movePill = m => m ? `<span class="move m-${esc(m.move)}">${esc((C.moves.find(x => x.id === m.move) || {}).label || m.move)}</span>` : '<span class="move none">—</span>';
+const tag = t => `<span class="tk tk-${t}">${t === 'users' ? 'Users' : t === 'product' ? 'Product' : 'Plan'}</span>`;
+function splitBar(f, big) {
+  if (!f) return `<span class="split${big ? ' big' : ''} empty" title="No hours logged"><i style="width:100%"></i></span>`;
+  return `<span class="split${big ? ' big' : ''}" title="Users ${Math.round(f.u)}% · Product ${Math.round(f.p)}% · Other ${Math.round(f.o)}%"><i class="u" style="width:${f.u}%"></i><i class="p" style="width:${f.p}%"></i><i class="o" style="width:${f.o}%"></i></span>`;
+}
+const onTarget = f => f && f.u + f.p >= C.focusTarget;
+
+/* ---------- Views ---------- */
+function vLab() {
+  const cur = current(), cs = C.sessions[cur];
+  const head = `<section class="hero"><p class="eyebrow">${esc(C.course)} · ${esc(C.term)}</p><h1>${esc(C.claim)}</h1>
+    <blockquote class="credo"><p>${credoHTML()}</p><cite>${credoCite()}</cite></blockquote>
+    <a class="now" href="#/s/${cur}"><span class="mono">Now · ${cur} · ${esc(cs.date)}</span><strong>${esc(cs.title)}</strong><span class="mono brief-n">${esc(cs.brief.name)}</span><span class="arrow" aria-hidden="true">→</span></a>
+    ${admin?.role === 'lecturer' ? `<label class="inline" for="setcur">Current session · released to students with the next publish <select id="setcur" data-act="setcur">${SIDS.map(s => `<option${s === cur ? ' selected' : ''}>${s}</option>`).join('')}</select></label>` : ''}</section>`;
+
+  const path = `<section class="path" aria-label="Odoo pathway">${C.path.map(p => `<div class="stage${p.sessions.includes(cur) ? ' on' : ''}">
+    <span class="mono">${esc(p.name)}</span><div class="chips">${p.sessions.map(s => chip(s, cur)).join('')}</div></div>`).join('')}</section>`;
+
+  const queue = admin ? (() => {
+    // Lecturer: every submitted brief without a newer verdict. Odoo: briefs of Odoo-led sessions and plans without a newer Odoo comment.
+    const q = [], me2 = ROLE_NAME[admin.role], odoo = admin.role === 'partner';
+    const open = (vid, key, ts) => !feedbacks(vid, key).some(f => f.author === me2 && f.ts >= ts && (odoo || (J(f, {}) || {}).verdict));
+    DB.ventures.forEach(v => {
+      SIDS.forEach(s => { const b = get(v.id, 'brief', s); if (!b || (odoo && !/Odoo/.test(C.sessions[s].lead))) return; if (open(v.id, s, b.ts)) q.push({ v, label: s, name: C.sessions[s].brief.name, href: `#/v/${v.id}#b-${s}`, ts: b.ts }); });
+      const p = get(v.id, 'plan', 'submission'); if (p && open(v.id, 'plan', p.ts)) q.push({ v, label: 'Plan', name: 'Business plan for quality review', href: `#/v/${v.id}/plan`, ts: p.ts, plan: true });
+    });
+    q.sort((a, z) => a.ts < z.ts ? -1 : 1);
+    return `<section class="queue"><h2>Waiting for your feedback <span class="count mono">${q.length}</span></h2>
+      ${q.length ? `<ul>${q.map(x => `<li${x.plan ? ' class="pl"' : ''}><a href="${x.href}"><span class="mono">${esc(x.label)}</span><strong>${esc(profile(x.v).venture)}</strong><span class="muted">${esc(x.name)}</span><span class="mono muted">${ago(x.ts)}</span></a></li>`).join('')}</ul>` : '<p class="muted">Nothing waiting.</p>'}</section>`;
+  })() : '';
+
+  const rows = DB.ventures.map(v => {
+    const p = profile(v), t = traction(v.id).totals, f = focusShare(v.id);
+    return `<tr><th scope="row"><a href="#/v/${v.id}">${esc(p.venture)}</a><small>${ago(lastActivity(v.id))}</small></th>
+      <td>${movePill(J(get(v.id, 'move', 'move')))}</td><td>${ladderBar(ladderOf(v.id))}</td>
+      <td class="fc">${splitBar(f)}<small class="mono${f && !onTarget(f) ? ' warn' : ''}">${f ? Math.round(f.u + f.p) + '%' : '—'}</small></td>
+      <td class="mono tr" title="conversations · commitments · paying customers">${num(t.conversation)} · ${num(t.commitment)} · <b>${num(t.customer)}</b></td>
+      ${SIDS.map(s => { const st = status(v.id, s); return `<td class="dc${s === cur ? ' cur' : ''}"><a class="dot ${st.cls}" href="#/v/${v.id}#b-${s}" aria-label="${s} ${esc(C.sessions[s].brief.name)}: ${st.t}" title="${s} · ${esc(C.sessions[s].brief.name)}: ${st.t}"></a></td>`; }).join('')}</tr>`;
+  }).join('');
+  const board = `<section><h2>The Lab</h2><div class="tbl"><table class="lab"><thead><tr><th scope="col">Venture</th><th scope="col">Move</th><th scope="col">Evidence</th><th scope="col">Focus</th><th scope="col">Traction</th>${SIDS.map(s => `<th scope="col" class="dc${s === cur ? ' cur' : ''}">${s.slice(1)}</th>`).join('')}</tr></thead><tbody>${rows || `<tr><td colspan="${SIDS.length + 5}" class="muted">No ventures yet.</td></tr>`}</tbody></table></div>
+    <div class="legend"><span><i class="dot s0"></i>open</span><span><i class="dot s1"></i>submitted</span><span><i class="dot s2"></i>revise</span><span><i class="dot s3"></i>accepted</span>
+      <span>${ladderBar(3)} evidence step 3 of 5</span><span>${splitBar({ u: 50, p: 30, o: 20 })} hours on users · product · other, last 4 weeks (target ${C.focusTarget}%)</span><span>conversations · commitments · <b>paying</b></span></div></section>`;
+  const tools = admin ? `<section class="card rtools"><div class="row between"><div><p class="eyebrow">Submissions and feedback</p>
+      <p>${Object.keys(INFO.subs || {}).length} of ${DB.ventures.length} ventures imported${Object.values(INFO.subs || {}).length ? ` · latest file ${fmt(Object.values(INFO.subs).map(x => x.exported || x.imported).sort().pop())}` : ''}</p></div>
+      <div class="row"><button class="btn small" data-act="importrev">Import logbook files</button>${admin.role === 'lecturer' ? `<button class="btn small${INFO.pending ? '' : ' ghost'}" data-act="publish">Publish feedback · download index.html</button><button class="btn ghost small" data-act="mergeupdate" title="Takes a new page version from Claude and adds all published feedback">Add feedback to a new page version</button>` : `<button class="btn small" data-act="exportfb">Export my comments</button>`}</div></div>
+      <p class="muted small">${admin.role === 'lecturer'
+        ? `Students e-mail you their logbook file; import those files here. Feedback and the current session reach students when you upload the downloaded index.html to GitHub.${INFO.pending ? ` <b>${INFO.pending} change(s) not yet published.</b>` : INFO.published ? ` Last published ${fmt(INFO.published)}.` : ''} Comments from Verena: import her feedback file with the same button.`
+        : 'Import the logbook files you received, add your comments, then export your comments and send the file to Prof. Petzold. He publishes them with the next update.'}</p>${GUIDE_REVIEWER}</section>` : '';
+  return head + tools + path + queue + board;
+}
+
+function vSession(sid) {
+  const s = C.sessions[sid]; if (!s) return '<p>Session not found.</p>';
+  const i = SIDS.indexOf(sid), st = stageOf(sid);
+  if (!released(sid)) return `<nav class="crumb mono"><a href="#/">Home</a> / ${esc(st?.name || '')} / ${sid}</nav>
+    <header class="ph"><p class="eyebrow">${sid} · ${esc(s.date)} · Lead: ${esc(s.lead)}${s.exam ? ' · Assessed' : ''}</p><h1>${esc(s.title)}</h1></header>
+    <section class="card locked"><p class="eyebrow">Not open yet</p><p>Brief, tasks and slides open with the session.</p></section>
+    <nav class="pager mono"><a href="#/s/${SIDS[i - 1]}">← ${SIDS[i - 1]} ${esc(C.sessions[SIDS[i - 1]].title)}</a><span></span></nav>`;
+  const mine = me ? [{ id: me.vid }] : [];
+  return `<nav class="crumb mono"><a href="#/">${admin ? 'Dashboard' : 'Home'}</a> / ${esc(st?.name || '')} / ${sid}</nav>
+    <header class="ph"><p class="eyebrow">${sid} · ${esc(s.date)} · Lead: ${esc(s.lead)}${s.exam ? ' · Assessed' : ''}</p><h1>${esc(s.title)}</h1>
+      ${admin && s.draft ? `<p class="note">${/Odoo/.test(s.lead) ? 'Odoo-led session: brief and tasks are a proposal, to align with the Odoo partner.' : 'Draft brief and tasks, not yet defined in a session deck.'} Edit in data/course.js.</p>` : ''}</header>
+    <div class="grid2">
+      <section class="card"><p class="eyebrow">Exit artefact</p><h3>${esc(s.brief.name)} <span class="mono muted">v1</span></h3>
+        <ol class="fields">${s.brief.fields.map(f => `<li><strong>${esc(f[0])}</strong>${f[1] ? `<span>${esc(f[1])}</span>` : ''}</li>`).join('')}</ol>
+        ${s.gate ? `<p class="gate"><span class="mono">Quality gate</span> ${s.gate.map(g => `<span class="g">${esc(g)}</span>`).join('')}</p>` : ''}
+        ${mine.length ? `<button class="btn" data-act="openbrief" data-v="${mine[0].id}" data-s="${sid}">${get(mine[0].id, 'brief', sid) ? 'Edit my brief' : 'Write my brief'}</button>`
+          : admin ? '<p class="muted small">Reviewers fill nothing in here. Open a venture from the dashboard to read and comment on its brief.</p>'
+          : '<p class="muted small">This is the template. To fill it in, <a href="#/">sign in with your access code</a>; the fields then open in your venture.</p>'}</section>
+      <div class="stack">
+        <section class="card"><p class="eyebrow">Before the next session</p>${s.tasks.length ? `<ul class="tasks">${s.tasks.map(t => `<li>${tag(t[1])}<span>${esc(t[0])}</span></li>`).join('')}</ul>` : '<p class="muted">Announced in session.</p>'}</section>
+        <section class="card"><p class="eyebrow">Material</p>${s.material.length ? `<ul class="mat">${s.material.map(m => `<li>${m.url ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">${esc(m.label)}</a>` : esc(m.label)}</li>`).join('')}</ul>` : '<p class="muted">Follows after the session.</p>'}</section>
+      </div>
+    </div>
+    ${admin ? `<section><h2>Briefs in the Lab</h2><div class="vstat">${DB.ventures.map(v => { const x = status(v.id, sid); return `<a href="#/v/${v.id}#b-${sid}" class="vs"><i class="dot ${x.cls}"></i><span>${esc(profile(v).venture)}<small>${ago((get(v.id, 'brief', sid) || {}).ts)}</small></span><em class="mono">${x.t}</em></a>`; }).join('')}</div></section>` : ''}
+    <nav class="pager mono">${i > 0 ? `<a href="#/s/${SIDS[i - 1]}">← ${SIDS[i - 1]} ${esc(C.sessions[SIDS[i - 1]].title)}</a>` : '<span></span>'}${i < SIDS.length - 1 ? `<a href="#/s/${SIDS[i + 1]}">${SIDS[i + 1]} ${esc(C.sessions[SIDS[i + 1]].title)} →</a>` : ''}</nav>`;
+}
+
+function fbBlock(vid, key, canGive, what) {
+  const target = key === 'plan' ? get(vid, 'plan', 'submission') : get(vid, 'brief', key);
+  const fbs = feedbacks(vid, key);
+  return `<div class="fbs"><p class="eyebrow">Feedback</p>${fbs.length ? fbs.map(f => { const x = J(f, {}) || {}; return `<div class="fb ${x.verdict === 'ready' ? 'ok' : x.verdict ? 'rev' : 'cm'}"><p class="mono">${esc(WHO[f.author] || f.author)} · ${x.verdict === 'ready' ? 'Accepted' : x.verdict ? 'Revise' : 'Comment'} · ${fmt(f.ts)}${target && f.ts < target.ts ? ' · on an earlier version' : ''}</p><p>${para(x.text)}</p></div>`; }).join('') : `<p class="muted fbempty">No feedback yet.</p>`}
+    ${admin && canGive ? `<button class="link" data-act="fb" data-v="${vid}" data-s="${key}">${admin.role === 'partner' ? 'Add a comment' : 'Give feedback'}${what ? ' on ' + what : ''}</button>` : ''}</div>`;
+}
+
+function vBrief(v, sid, open) {
+  const s = C.sessions[sid], b = get(v.id, 'brief', sid), vals = J(b, []) || [];
+  const k = v.id + '|' + sid, h = HIST[v.id + '|brief|' + sid] || [], st = status(v.id, sid), ed = editing.has(k);
+  const todos = s.tasks.map((t, i) => ({ t: t[0], track: t[1], i, done: get(v.id, 'todo', sid + '|' + i)?.value === '1' }));
+  const dr = canEdit(v.id) && !admin ? draftOf(v.id, sid) : null, dv = dr ? J(dr, []) || [] : null, ev = dv || vals;
+  const body = ed
+    ? `<form class="edit" data-k="${k}">${s.brief.fields.map((f, i) => `<label for="e-${k}-${i}"><span class="mono">${String(i + 1).padStart(2, '0')} · ${esc(f[0])}</span>${f[1] ? `<small>${esc(f[1])}</small>` : ''}<textarea id="e-${k}-${i}" rows="2" data-draft="${k}">${esc(ev[i] || '')}</textarea></label>`).join('')}
+        <p class="muted small" id="ds-${k}">${dr ? 'Draft saved ' + fmt(dr.ts) : 'Your draft is saved in this browser as you type. Please describe customers anonymously, without names or contact details.'}</p>
+        <div class="row end"><button type="button" class="btn ghost" data-act="cancel" data-k="${k}">Close</button><button type="button" class="btn ghost" data-act="savedraft" data-v="${v.id}" data-s="${sid}">Save draft</button><button type="button" class="btn" data-act="save" data-v="${v.id}" data-s="${sid}">Submit${h.length ? ' version ' + (h.length + 1) : ''} for feedback</button></div></form>`
+    : dr ? `<p class="draftnote mono">Draft · ${fmt(dr.ts)} · not submitted yet</p><dl class="bf">${s.brief.fields.map((f, i) => `<div><dt class="mono">${String(i + 1).padStart(2, '0')} · ${esc(f[0])}</dt><dd>${dv[i] && dv[i].trim() ? para(dv[i]) : '<span class="muted">—</span>'}</dd></div>`).join('')}</dl><div class="row"><button class="btn small" data-act="edit" data-k="${k}">Continue editing</button><button class="btn small" data-act="submitdraft" data-v="${v.id}" data-s="${sid}">Submit for feedback</button></div>`
+    : b ? `<dl class="bf">${s.brief.fields.map((f, i) => `<div><dt class="mono">${String(i + 1).padStart(2, '0')} · ${esc(f[0])}</dt><dd>${vals[i] && vals[i].trim() ? para(vals[i]) : '<span class="muted">—</span>'}</dd></div>`).join('')}</dl>`
+    : `<p class="muted">Not submitted yet.</p>${canEdit(v.id) ? `<button class="btn small" data-act="edit" data-k="${k}">Write brief</button>` : ''}`;
+  return `<details class="brief" id="b-${sid}"${(open && !closedBriefs.has(v.id + '|' + sid)) || editing.has(v.id + '|' + sid) || openBriefs.has(v.id + '|' + sid) ? ' open' : ''}><summary>
+      <span class="mono sid">${sid}</span><span class="bt"><strong>${esc(s.brief.name)}</strong><small>${esc(s.title)} · ${esc(s.date)}</small></span><span class="pill ${dr ? 'sd' : st.cls}">${dr ? 'draft' : st.t}</span></summary>
+    <div class="bbody">
+      ${body}
+      ${!ed && !dr ? `<p class="meta mono">${b ? `Version ${h.length} · ${fmt(b.ts)}` : ''}
+        ${canEdit(v.id) && b ? `<button class="link" data-act="edit" data-k="${k}">Edit brief</button>` : ''}
+        ${h.length > 1 ? `<button class="link" data-act="hist" data-k="${k}">${openHist.has(k) ? 'Hide versions' : 'Earlier versions'}</button>` : ''}</p>` : ''}
+      ${openHist.has(k) && !ed ? `<ol class="hist">${h.slice(0, -1).reverse().map((e, j) => { const hv = J(e, []) || []; return `<li><span class="mono">Version ${h.length - 1 - j} · ${fmt(e.ts)}</span><dl class="bf">${s.brief.fields.map((f, i) => hv[i] ? `<div><dt class="mono">${esc(f[0])}</dt><dd>${para(hv[i])}</dd></div>` : '').join('')}</dl></li>`; }).join('')}</ol>` : ''}
+      ${fbBlock(v.id, sid, !!b)}
+      ${todos.length ? `<div class="todo"><p class="eyebrow">Before the next session</p>${todos.map(t => `<div class="cbrow"><label class="cb${canEdit(v.id) ? '' : ' ro'}" for="td-${k}-${t.i}"><input type="checkbox" id="td-${k}-${t.i}" data-act="todo" data-v="${v.id}" data-key="${sid}|${t.i}"${t.done ? ' checked' : ''}${canEdit(v.id) ? '' : ' disabled'}>${tag(t.track)}<span>${esc(t.t)}</span></label>${canEdit(v.id) && t.track !== 'plan' ? `<button class="link small" data-act="addtrac" data-track="${t.track}" data-text="${esc(t.t)}">Log result</button>` : ''}</div>`).join('')}</div>` : ''}
+    </div></details>`;
+}
+
+function vTraction(v) {
+  const { items, totals } = traction(v.id), ed = canEdit(v.id);
+  const col = track => `<section class="tcol t-${track}"><header><p class="eyebrow">${track === 'users' ? 'Track A' : 'Track B'}</p><h3>${TRACK[track]}</h3>${ed ? `<button class="btn small" data-act="addtrac" data-track="${track}">Log ${track === 'users' ? 'users' : 'product'} progress</button>` : ''}</header>
+    <dl class="totals">${C.traction[track].map(k => `<div><dt>${esc(k.label.split(' (')[0])}</dt><dd class="mono">${k.unit === '€' ? num(totals[k.id]) + ' €' : num(totals[k.id])}</dd></div>`).join('')}</dl>
+    <ol class="tlog">${items.filter(x => x.track === track).map(x => `<li><span class="mono">${esc(fmtDay(x.date))}</span><span><b>${kindOf(x.kind).unit === '€' ? num(x.n) + ' €' : '+' + num(x.n)}</b> ${esc(kindOf(x.kind).label.split(' (')[0].toLowerCase())}${x.text ? ` · ${esc(x.text)}` : ''}</span>${ed ? `<button class="link small" data-act="deltrac" data-key="${esc(x.key)}" aria-label="Remove entry">remove</button>` : ''}</li>`).join('') || '<li class="muted">Nothing logged yet.</li>'}</ol></section>`;
+
+  const weeks = focus(v.id), max = Math.max(1, ...weeks.map(w => w.sum)), cw = isoWeek();
+  const chart = `<div class="weeks" role="img" aria-label="Founder hours per week">${weeks.map(w => `<div class="wk${w.w === cw ? ' cur' : ''}"><div class="stack" style="height:${w.sum / max * 100}%">${w.v ? `<i class="o" style="flex:${+w.v.other || 0}"></i><i class="p" style="flex:${+w.v.product || 0}"></i><i class="u" style="flex:${+w.v.users || 0}"></i>` : ''}</div><span class="mono">${w.w.slice(-3)}</span><small class="mono">${w.sum ? num(w.sum) + ' h' : '—'}</small></div>`).join('')}</div>`;
+  const f = focusShare(v.id);
+  return `<div class="tgrid">${col('users')}${col('product')}</div>
+    <section class="card focus"><div class="row between"><div><p class="eyebrow">Founder focus · last 8 weeks</p><h3>Where did your hours go?</h3></div>${ed ? `<button class="btn small" data-act="week">Log hours for this week</button>` : ''}</div>
+      ${chart}
+      <p class="legend"><span><i class="sw u"></i>Getting users</span><span><i class="sw p"></i>Building product</span><span><i class="sw o"></i>Everything else</span>
+      ${f ? `<span class="mono${onTarget(f) ? '' : ' warn'}">Last 4 weeks: ${Math.round(f.u + f.p)}% on users + product (target ${C.focusTarget}%)</span>` : ''}</p></section>`;
+}
+
+function vReadiness(v) {
+  const r = readiness(v.id), n = r.filter(x => x.ok).length;
+  return `<section class="card ready"><div class="row between"><div><p class="eyebrow">Demo Day · ${esc(C.demoDay.session)} · ${esc(C.demoDay.date)}</p><h3>Do your three logics fit together?</h3></div><p class="big mono">${n}<span> / ${r.length}</span></p></div>
+    <ul class="checks">${r.map(c => `<li class="${c.ok ? 'ok' : ''}"><i aria-hidden="true">${c.ok ? '✓' : ''}</i><span><strong>${esc(c.label)}</strong><small class="mono">${esc(c.note)}</small></span></li>`).join('')}</ul></section>`;
+}
+
+function planHTML(v) {
+  const p = profile(v), d = planData(v), { totals } = traction(v.id), f = focusShare(v.id), mv = J(get(v.id, 'move', 'move')), lad = ladderOf(v.id);
+  const auto = {
+    summary: () => `<p class="lead">${esc(p.oneLiner || 'One-liner not yet written.')}</p>
+      <ul class="facts"><li><span>Current move</span><b>${mv ? esc((C.moves.find(m => m.id === mv.move) || {}).label) : '—'}</b></li><li><span>Strongest evidence</span><b>${esc(C.ladder[lad - 1] || '—')}</b></li>
+      <li><span>Paying customers</span><b>${num(totals.customer)}</b></li><li><span>Revenue to date</span><b>${num(totals.revenue)} €</b></li></ul>`,
+    users: () => `<table class="pt"><tbody>${C.traction.users.map(k => `<tr><th>${esc(k.label)}</th><td class="mono">${k.unit === '€' ? num(totals[k.id]) + ' €' : num(totals[k.id])}</td></tr>`).join('')}</tbody></table>`,
+    product: () => `<table class="pt"><tbody>${C.traction.product.map(k => `<tr><th>${esc(k.label)}</th><td class="mono">${num(totals[k.id])}</td></tr>`).join('')}</tbody></table>
+      <ul class="plog">${traction(v.id).items.filter(x => x.track === 'product').slice(0, 6).map(x => `<li><span class="mono">${esc(fmtDay(x.date))}</span> ${esc(x.text || kindOf(x.kind).label)}</li>`).join('')}</ul>`,
+    focus: () => f ? `<p>Over the last four logged weeks the founder spent <b>${num(Math.round(f.hours))} hours</b>: ${Math.round(f.u)}% getting users, ${Math.round(f.p)}% building product, ${Math.round(f.o)}% on everything else.</p>` : ''
+  };
+  return `<article class="plan" id="plan-doc">
+    <header class="pcover"><p class="eyebrow">Business plan · ${esc(C.course)}</p><h2>${esc(p.venture)}</h2><p class="muted">Generated ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })} from the Unicorn Logbook</p>
+      <p class="pnote">Every statement below comes from the founder’s briefs and logged traction. <span class="okmark">✓</span> marks fields whose brief the lecturer has accepted.</p></header>
+    ${d.sections.map((s, n) => `<section class="psec"><h3><span class="mono">${String(n + 1).padStart(2, '0')}</span>${esc(s.title)}</h3>
+      ${s.auto && auto[s.auto] ? auto[s.auto]() : ''}
+      <dl>${s.fields.map(x => `<div class="${x.text ? '' : 'gap'}"><dt><span class="mono">${x.sid}</span> ${esc(x.label)}${x.accepted ? ' <span class="okmark" title="Brief accepted">✓</span>' : ''}</dt><dd>${x.text ? para(x.text) : 'Not yet written.'}</dd></div>`).join('')}</dl></section>`).join('')}
+    <section class="psec appx"><h3><span class="mono">A</span>Reviewer feedback on the briefs</h3>
+      ${SIDS.map(s => feedbacks(v.id, s).map(fb => { const x = J(fb, {}) || {}; return `<div class="afb"><p class="mono">${s} · ${esc(C.sessions[s].brief.name)} · ${esc(WHO[fb.author] || fb.author)} · ${x.verdict === 'ready' ? 'Accepted' : x.verdict ? 'Revise' : 'Comment'}</p><p>${para(x.text)}</p></div>`; }).join('')).join('') || '<p class="muted">No feedback yet.</p>'}</section>
+  </article>`;
+}
+function planText(v) {
+  const p = profile(v), d = planData(v), { totals } = traction(v.id), f = focusShare(v.id);
+  const L = [`BUSINESS PLAN · ${p.venture}`, `${C.course} · ${new Date().toISOString().slice(0, 10)}`, p.oneLiner, ''];
+  d.sections.forEach((s, n) => {
+    L.push(`${String(n + 1).padStart(2, '0')} ${s.title.toUpperCase()}`);
+    if (s.auto === 'summary' || s.auto === 'users') C.traction.users.forEach(k => L.push(`- ${k.label}: ${totals[k.id]}${k.unit === '€' ? ' €' : ''}`));
+    if (s.auto === 'product') C.traction.product.forEach(k => L.push(`- ${k.label}: ${totals[k.id]}`));
+    if (s.auto === 'focus' && f) L.push(`- Founder hours (last 4 weeks): ${Math.round(f.hours)} h · users ${Math.round(f.u)}% · product ${Math.round(f.p)}% · other ${Math.round(f.o)}%`);
+    s.fields.forEach(x => L.push(`${x.sid} ${x.label}${x.accepted ? ' [accepted]' : ''}: ${x.text || '—'}`));
+    L.push('');
+  });
+  L.push('A REVIEWER FEEDBACK');
+  SIDS.forEach(s => feedbacks(v.id, s).forEach(fb => { const x = J(fb, {}) || {}; L.push(`${s} · ${WHO[fb.author] || fb.author} · ${x.verdict || 'comment'}: ${x.text}`); }));
+  return L.join('\n');
+}
+
+/* ---------- Business plan: material → own sections + financial plan → composed plan ---------- */
+const PLAN_MIN = 300; // characters per own section (about 50 words)
+const FIN = [
+  ['cash0', 'Cash available at start (€)'], ['price', 'Price per customer or unit (€)'], ['varCost', 'Variable cost per customer or unit (€)'],
+  ['units1', 'Customers or units in month 1'], ['growth', 'Growth per month (%)'], ['fixed', 'Fixed costs per month (€)'],
+  ['draw', 'Founder salary per month (€)'], ['fund', 'External funding (€, 0 if none)'], ['fundMonth', 'Funding arrives in month (1–12)'],
+  ['g2', 'Growth year 2 vs. year 1 (%)'], ['g3', 'Growth year 3 vs. year 2 (%)']];
+const finInputs = vid => J(get(vid, 'finance', 'inputs'), {}) || {};
+const finReady = f => FIN.every(([k]) => f[k] !== undefined && f[k] !== '');
+function finance(f) {
+  const n = k => +String(f[k] ?? 0).replace(',', '.') || 0;
+  let cash = n('cash0'); const rows = [];
+  for (let m = 1; m <= 12; m++) {
+    const units = Math.round(n('units1') * Math.pow(1 + n('growth') / 100, m - 1));
+    const rev = units * n('price'), vc = units * n('varCost'), op = rev - vc - n('fixed') - n('draw'), fund = m === Math.round(n('fundMonth')) ? n('fund') : 0;
+    cash += op + fund; rows.push({ m, units, rev, vc, fixed: n('fixed'), draw: n('draw'), op, fund, cash });
+  }
+  const y1u = rows.reduce((a, r) => a + r.units, 0), years = [];
+  [1, 1 + n('g2') / 100, (1 + n('g2') / 100) * (1 + n('g3') / 100)].forEach((g, i) => {
+    const u = Math.round(y1u * g), rev = u * n('price'), gm = rev - u * n('varCost'), fix = 12 * (n('fixed') + n('draw'));
+    years.push({ y: i + 1, u, rev, gm, fix, res: gm - fix });
+  });
+  const be = rows.find(r => r.op >= 0), low = rows.reduce((a, r) => r.cash < a.cash ? r : a, rows[0]);
+  return { rows, years, breakEven: be ? be.m : null, low, end: rows[11].cash, alive: rows.every(r => r.cash >= 0) };
+}
+const eur = x => Math.round(x).toLocaleString('en-GB') + ' €';
+function financeHTML(f) {
+  if (!finReady(f)) return '<p class="muted">Financial plan not yet filled in.</p>';
+  const F = finance(f);
+  return `<div class="fin">
+    <ul class="facts"><li><span>Operating break-even</span><b>${F.breakEven ? 'Month ' + F.breakEven : 'Not within 12 months'}</b></li><li><span>Lowest cash</span><b>${eur(F.low.cash)} (month ${F.low.m})</b></li><li><span>Cash after 12 months</span><b>${eur(F.end)}</b></li><li><span>Cash stays positive</span><b>${F.alive ? 'Yes' : 'No: funding gap'}</b></li></ul>
+    <div class="tbl"><table class="pt fin12"><thead><tr><th>Month</th><th>Units</th><th>Revenue</th><th>Variable</th><th>Fixed</th><th>Founder</th><th>Funding</th><th>Cash flow</th><th>Cash</th></tr></thead>
+    <tbody>${F.rows.map(r => `<tr><td>${r.m}</td><td>${num(r.units)}</td><td>${eur(r.rev)}</td><td>${eur(-r.vc)}</td><td>${eur(-r.fixed)}</td><td>${eur(-r.draw)}</td><td>${r.fund ? eur(r.fund) : '—'}</td><td>${eur(r.op + r.fund)}</td><td class="${r.cash < 0 ? 'neg' : ''}">${eur(r.cash)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="tbl"><table class="pt fin3"><thead><tr><th>Year</th><th>Units</th><th>Revenue</th><th>Gross margin</th><th>Fixed + founder</th><th>Result</th></tr></thead>
+    <tbody>${F.years.map(y => `<tr><td>Year ${y.y}</td><td>${num(y.u)}</td><td>${eur(y.rev)}</td><td>${eur(y.gm)}</td><td>${eur(-y.fix)}</td><td class="${y.res < 0 ? 'neg' : ''}">${eur(y.res)}</td></tr>`).join('')}</tbody></table></div>
+    <p class="muted small">Simplified plan before tax. Years 2 and 3 assume constant price, cost per unit and fixed costs.</p></div>`;
+}
+function financeText(f) {
+  if (!finReady(f)) return 'Financial plan: not filled in.';
+  const F = finance(f), L = ['Inputs: ' + FIN.map(([k, l]) => `${l}: ${f[k]}`).join('; ')];
+  L.push(`Operating break-even: ${F.breakEven ? 'month ' + F.breakEven : 'not within 12 months'}; lowest cash ${eur(F.low.cash)} in month ${F.low.m}; cash after 12 months ${eur(F.end)}; cash stays positive: ${F.alive ? 'yes' : 'no'}.`);
+  F.years.forEach(y => L.push(`Year ${y.y}: units ${y.u}, revenue ${eur(y.rev)}, gross margin ${eur(y.gm)}, fixed + founder ${eur(y.fix)}, result ${eur(y.res)}.`));
+  return L.join('\n');
+}
+const PDF_MAX = 3 * 1048576;
+function financeMD(f) {
+  if (!finReady(f)) return 'Financial plan: not filled in.';
+  const F = finance(f), e = x => eur(x).replace(' €', ' EUR');
+  return [`Operating break-even: ${F.breakEven ? 'month ' + F.breakEven : 'not within 12 months'} · lowest cash ${e(F.low.cash)} (month ${F.low.m}) · cash after 12 months ${e(F.end)}`, '',
+    '| Month | Units | Revenue | Variable | Fixed | Founder | Funding | Cash flow | Cash |', '|---|---|---|---|---|---|---|---|---|',
+    ...F.rows.map(r => `| ${r.m} | ${r.units} | ${e(r.rev)} | ${e(-r.vc)} | ${e(-r.fixed)} | ${e(-r.draw)} | ${r.fund ? e(r.fund) : '—'} | ${e(r.op + r.fund)} | ${e(r.cash)} |`), '',
+    '| Year | Units | Revenue | Gross margin | Fixed + founder | Result |', '|---|---|---|---|---|---|',
+    ...F.years.map(y => `| ${y.y} | ${y.u} | ${e(y.rev)} | ${e(y.gm)} | ${e(-y.fix)} | ${e(y.res)} |`)].join('\n');
+}
+const SECTIONS = () => [...C.plan.map(s => s.title), 'Financial plan: your assumptions'];
+const parts = vid => SECTIONS().map((_, i) => get(vid, 'planpart', String(i))?.value || '');
+const planDoc = vid => { const e = get(vid, 'plandoc', 'doc'), x = J(e); return x && x.md ? { ...x, ts: e.ts } : null; };
+function composeMaterial(v) {
+  const p = profile(v), ps = parts(v.id);
+  return [`VENTURE: ${p.venture}`, `ONE-LINER: ${p.oneLiner || '—'}`, '', 'LOGBOOK MATERIAL (briefs, traction, feedback):', planText(v), '',
+    'FOUNDER’S OWN SECTION TEXTS (keep their voice):', ...SECTIONS().map((t, i) => `## ${t}\n${ps[i]}`), '',
+    'FINANCIAL PLAN (computed by the logbook; do not change these numbers):', financeText(finInputs(v.id))].join('\n');
+}
+function mdHTML(md, fin) {
+  const out = []; let list = null, table = null;
+  const flush = () => { if (list) { out.push(`<ul>${list.map(x => `<li>${inl(esc(x))}</li>`).join('')}</ul>`); list = null; } if (table) { out.push(`<div class="tbl"><table class="pt">${table.map((r, i) => `<tr>${r.map(c => i ? `<td>${inl(esc(c))}</td>` : `<th>${inl(esc(c))}</th>`).join('')}</tr>`).join('')}</table></div>`); table = null; } };
+  for (const raw of String(md).split('\n')) {
+    const l = raw.trim();
+    if (l === '[[FINANCE_TABLES]]') { flush(); out.push(fin); continue; }
+    if (/^\|.*\|$/.test(l)) { if (/^\|[\s:|-]+\|$/.test(l)) continue; (table = table || []).push(l.slice(1, -1).split('|').map(c => c.trim())); continue; }
+    if (/^[-*] /.test(l)) { (list = list || []).push(l.slice(2)); continue; }
+    flush();
+    const h = l.match(/^(#{1,3}) (.*)/);
+    if (h) out.push(`<h${h[1].length + 1}>${inl(esc(h[2]))}</h${h[1].length + 1}>`); else if (l) out.push(`<p>${inl(esc(l))}</p>`);
+  }
+  flush(); return out.join('');
+}
+// Composes a full plan from the founder's own texts, the briefs, traction and the financial plan. No external service.
+function composePlan(v) {
+  const p = profile(v), ps = parts(v.id), d = planData(v), f = finInputs(v.id), F = finReady(f) ? finance(f) : null, { totals } = traction(v.id);
+  const bf = (sid, i) => ((J(get(v.id, 'brief', sid), []) || [])[i] || '').trim();
+  const facts = sec => sec.fields.filter(x => x.text).map(x => `- **${x.label}:** ${x.text.replace(/\n+/g, ' ')}`).join('\n');
+  const L = [`# Business plan: ${p.venture}`, p.oneLiner ? `*${p.oneLiner}*` : '', ''];
+  d.sections.forEach((sec, i) => {
+    L.push(`## ${sec.title}`, ps[i].trim(), '');
+    if (i === 0) {
+      L.push('| Key figure | Value |', '|---|---|',
+        `| Paying customers | ${num(totals.customer)} |`, `| Revenue to date | ${num(totals.revenue)} € |`, `| Strongest evidence | ${C.ladder[ladderOf(v.id) - 1] || '—'} |`);
+      if (F) L.push(`| Operating break-even | ${F.breakEven ? 'month ' + F.breakEven : 'not within 12 months'} |`, `| Revenue year 1 | ${eur(F.years[0].rev)} |`, `| Cash after 12 months | ${eur(F.end)} |`);
+      L.push('');
+    }
+    if (sec.auto === 'users') L.push(...C.traction.users.map(k => `- ${k.label}: ${num(totals[k.id])}${k.unit === '€' ? ' €' : ''}`), '');
+    if (sec.auto === 'product') L.push(...C.traction.product.map(k => `- ${k.label}: ${num(totals[k.id])}`), '');
+    L.push('### From the logbook', facts(sec), '');
+  });
+  L.push('## Financial plan', ps[ps.length - 1].trim(), '', '[[FINANCE_TABLES]]', '');
+  const risks = [['Where one founder breaks first', bf('S01', 3)], ['Riskiest economic assumption', bf('S05', 5)], ['What breaks at ten times the volume', bf('S14', 0)], ['Who could be harmed', bf('S11', 0)]].filter(x => x[1]);
+  if (F && !F.alive) risks.push(['Funding gap', `Cash falls to ${eur(F.low.cash)} in month ${F.low.m}.`]);
+  L.push('## Risks and open points', ...risks.map(([k, t]) => `- **${k}:** ${t}`), '');
+  const next = [['Funding path', bf('S12', 2)], ['Capital need and milestone', bf('S12', 1)], ['Ask', bf('S13', 3)], ['Decision on the venture', bf('S15', 1)]].filter(x => x[1]);
+  if (next.length) L.push('## Next steps', ...next.map(([k, t]) => `- **${k}:** ${t}`), '');
+  return L.join('\n');
+}
+const PLAN_PROMPT = 'You are an editor in a university entrepreneurship course. Below is a business plan a solo founder assembled from their logbook, including their own section texts. Rewrite it into one coherent, realistic business plan in Markdown. Rules: use only facts from the text; never invent customers, numbers, quotes or sources; mark missing points as "[Open: …]"; keep the founder\'s voice and do not turn it into marketing language; write in the language of the founder\'s own texts; keep the headings and the financial tables; do not change any number. Format the result so it can be saved as a PDF. About 2,000 to 3,000 words.\n\n';
+
+function vPlan(v) {
+  const d = planData(v), ed = canEdit(v.id) && !admin, doc = planDoc(v.id), f = finInputs(v.id), ps = parts(v.id);
+  const sub = get(v.id, 'plan', 'submission'), sv = J(sub), pdfE = get(v.id, 'planpdf', 'pdf'), pdf = pdfE ? { ...(J(pdfE, {}) || {}), ts: pdfE.ts } : null;
+  const missing = d.sections.flatMap(s => s.fields.filter(x => !x.text).map(x => `${x.sid} · ${x.label}`));
+  const partsOk = ps.every(t => t.trim().length >= PLAN_MIN), canCompose = d.filled === d.total && partsOk && finReady(f);
+  const steps = `<ol class="psteps mono"><li class="${d.filled === d.total ? 'done' : 'on'}">1 · Fill every plan field</li><li class="${d.filled < d.total ? '' : canCompose ? 'done' : 'on'}">2 · Write your sections + financial plan</li><li class="${doc ? 'done' : canCompose ? 'on' : ''}">3 · Create the logbook version</li><li class="${pdf ? 'done' : doc ? 'on' : ''}">4 · Finish with Claude or another LLM, upload PDF</li><li class="${sub ? 'done' : pdf ? 'on' : ''}">5 · Send to reviewers (optional)</li></ol>`;
+  const head = `<section class="card pbar"><div class="row between"><div><p class="eyebrow">Business plan</p><h3>${doc ? 'Your business plan' : d.filled < d.total ? `Material · ${d.pct}% of plan fields filled` : 'Write your business plan'}</h3></div>
+      <div class="row">${doc ? `${!FRAMED ? '<button class="btn ghost small" data-act="print">Print or save as PDF</button>' : ''}<button class="btn ghost small" data-act="copyplan">Copy as text</button>` : ''}</div></div>${steps}</section>`;
+
+  if (d.filled < d.total) {
+    // Progress per session instead of one long list: what is done, what is open, what opens later.
+    const by = {}; d.sections.forEach(sec => sec.fields.forEach(x => { (by[x.sid] = by[x.sid] || { done: 0, all: 0, open: [] }).all++; x.text ? by[x.sid].done++ : by[x.sid].open.push(x.label); }));
+    const tiles = SIDS.filter(sid => by[sid]).map(sid => { const t = by[sid], rel = released(sid), full = t.done === t.all;
+      return `<a class="ptile${full ? ' full' : ''}${rel ? '' : ' later'}" href="#/v/${v.id}#b-${sid}" title="${esc(t.open.join(' · ') || 'Complete')}">
+        <span class="mono">${sid}</span><strong>${esc(C.sessions[sid].brief.name)}</strong>
+        <span class="pmeter"><i style="width:${t.done / t.all * 100}%"></i></span>
+        <span class="mono small">${full ? 'complete' : rel ? `${t.done} of ${t.all}` : 'opens later'}</span></a>`; }).join('');
+    return head + `<section class="card pgate">
+      <div class="row between"><div><p class="eyebrow">Your plan is built from your briefs</p><p class="big mono">${d.filled}<span> / ${d.total} fields</span></p></div>
+        <p class="muted small pgnote">The writing step unlocks when every field is filled. Each brief you complete in a session adds to your plan.</p></div>
+      <div class="ptiles">${tiles}</div></section>
+      <details class="card matprev"><summary class="mono small">Preview the material collected so far</summary>${planHTML(v)}</details>`;
+  }
+
+  const writer = ed && (writing.has(v.id) || !doc);
+  const pdfCard = pdf ? `<section class="card pdfcard"><p class="eyebrow">Final business plan · PDF</p><h3>${esc(pdf.name || 'business-plan.pdf')}</h3>
+      <p class="mono small muted">Uploaded ${fmt(pdf.ts)} · ${Math.round((pdf.size || 0) / 1024)} KB</p>
+      <div class="row"><button class="btn small" data-act="openpdf" data-id="${esc(pdf.id)}" data-name="${esc(pdf.name || 'business-plan.pdf')}">Open PDF</button>${ed ? '<button class="btn ghost small" data-act="uploadpdf">Replace PDF</button>' : ''}</div></section>` : '';
+  const review = doc || pdf ? `<section class="card review"><p class="eyebrow">Optional quality review</p>
+      <p>Send your final plan (PDF) to Prof. Petzold and Verena Göttlich (Odoo) for a quality signal. This is an extra service and does not affect your grade.</p>
+      ${sub ? `<p class="mono small">Sent ${fmt(sub.ts)}${pdf && sv?.pdfId && sv.pdfId !== pdf.id ? ' · new PDF uploaded since' : ''}</p>` : ''}
+      ${ed ? `<button class="btn" data-act="submitplan"${pdf ? '' : ' disabled'}>${sub ? 'Send updated plan' : 'Send plan for review'}</button>${pdf ? '' : '<p class="muted small">Upload your final PDF first.</p>'}` : ''}
+      ${sub ? fbBlock(v.id, 'plan', true, 'the plan') : ''}</section>` : '';
+  const docView = doc && !writer ? `<article class="plan" id="plan-doc"><header class="pcover"><p class="eyebrow">Business plan · ${esc(C.course)}</p><p class="muted">${doc.source === 'claude' ? 'Edited with Claude' : 'Created'} ${fmt(doc.ts)} from the Unicorn Logbook and the founder’s own texts</p></header>
+      ${mdHTML(doc.md, financeHTML(f))}</article>
+      ${ed ? `<section class="card finish"><p class="eyebrow">Next step · finish with Claude or another LLM</p><h3>Turn the logbook version into your final plan</h3>
+        <ol class="fsteps"><li><b>Copy</b> your plan with the editing prompt.</li><li><b>Paste</b> it into your own Claude account or another LLM and work on it until it reads like your plan.</li><li><b>Check</b> every fact and number against your logbook, then save the result as PDF.</li><li><b>Upload</b> the PDF here.</li></ol><p class="muted small">Use your own account and remove personal data of third parties before you paste.</p>
+        <div class="row"><button class="btn small" data-act="copyprompt">Copy plan + prompt</button><button class="btn small${pdf ? ' ghost' : ''}" data-act="uploadpdf">${pdf ? 'Replace PDF' : 'Upload final PDF'}</button></div>
+        <textarea id="promptbox" rows="4" hidden readonly></textarea>
+        <p><button class="link" data-act="planwrite">Revise your texts and create the logbook version again</button></p></section>` : ''}` : '';
+  const writerView = writer ? `<section class="pwrite">${SECTIONS().map((t, i) => {
+      const sec = d.sections[i], n = (ps[i] || '').trim().length;
+      return `<section class="card psec-w"><h3><span class="mono">${String(i + 1).padStart(2, '0')}</span> ${esc(t)}</h3>
+        ${sec ? `<details class="mat"><summary class="mono small">Your material from the logbook</summary><dl>${sec.fields.map(x => `<div><dt class="mono">${x.sid} · ${esc(x.label)}</dt><dd>${para(x.text)}</dd></div>`).join('')}</dl></details>` : ''}
+        ${i === SECTIONS().length - 1 ? `<div class="fingrid">${FIN.map(([k, l]) => `<label><span>${esc(l)}</span><input type="number" step="any" inputmode="decimal" data-fin="${k}" data-v="${v.id}" value="${esc(f[k] ?? '')}"></label>`).join('')}</div>${financeHTML(f)}` : ''}
+        <label class="ownw"><span class="mono small">In your own words${i === SECTIONS().length - 1 ? ': explain your assumptions' : ''} · at least ${PLAN_MIN} characters · <b data-cnt="${i}">${n}</b></span>
+        <textarea rows="5" data-pp="${v.id}|${i}">${esc(ps[i] || '')}</textarea></label></section>`; }).join('')}
+      <section class="card"><p>${canCompose ? 'All sections and the financial plan are complete.' : `Complete all ${SECTIONS().length} sections (at least ${PLAN_MIN} characters each) and the financial plan to compose your plan.`}</p>
+        <button class="btn" data-act="compose" data-v="${v.id}"${canCompose ? '' : ' disabled'}>Create business plan</button>
+        <p class="muted small">Builds a complete plan from your texts, briefs, traction and financial plan: key figures, all sections, financial tables, risks and next steps.</p></section></section>` : '';
+  const adminView = admin && !doc && !pdf ? `<section class="card"><p class="muted">No plan created yet. Sections written: ${ps.filter(t => t.trim().length >= PLAN_MIN).length} of ${SECTIONS().length} · financial plan ${finReady(f) ? 'complete' : 'open'}.</p></section>` + planHTML(v) : '';
+  return head + pdfCard + (adminView || writerView || docView) + review;
+}
+
+function vVenture(id, tab) {
+  const v = vById(id); if (!v) return '<p>Venture not found.</p>';
+  const p = profile(v), cur = current(), ci = SIDS.indexOf(cur);
+  const mv = J(get(v.id, 'move', 'move')), lad = ladderOf(v.id), t = traction(v.id).totals, f = focusShare(v.id, 1);
+  const past = SIDS.slice(0, ci + 1), future = SIDS.slice(ci + 1);
+  const startAt = (!admin && past.find(s => !get(v.id, 'brief', s))) || cur; // founders start at their first open brief
+  const rdy = readiness(v.id).filter(x => x.ok).length, pd = planData(v);
+  const tabs = [['', 'Logbook'], ['traction', 'Users & product'], ['plan', 'Business plan']];
+  let body;
+  if (tab === 'traction') body = vReadiness(v) + vTraction(v);
+  else if (tab === 'plan') body = vPlan(v);
+  else body = `<section class="briefs">${past.map(s => vBrief(v, s, s === startAt || HASH.endsWith('#b-' + s))).join('')}
+      ${future.length ? `<details class="later"><summary class="mono">Upcoming · ${future.length} sessions</summary>${admin ? future.map(s => vBrief(v, s, HASH.endsWith('#b-' + s))).join('') : `<ul class="upcoming">${future.map(s => `<li><span class="mono">${s}</span> ${esc(C.sessions[s].title)} <span class="muted small">opens with the session</span></li>`).join('')}</ul>`}</details>` : ''}</section>`;
+  return `${admin ? '<nav class="crumb mono"><a href="#/">Dashboard</a> / Venture</nav>' : ''}
+    <header class="vh"><div><p class="eyebrow">${admin ? 'Venture' : 'Your venture · private'}</p><h1>${esc(p.venture)}</h1>${p.oneLiner ? `<p class="one">${esc(p.oneLiner)}</p>` : ''}
+      ${canEdit(v.id) ? '<button class="link" data-act="profile">Edit name and one-liner</button>' : ''}</div>
+      <div class="auth">${me && me.vid === v.id && !admin ? '<button class="btn ghost" data-act="logout">Sign out</button>' : ''}</div></header>
+    ${me && me.vid === v.id && !admin ? `<section class="filebar${INFO.changed && (!INFO.exported || INFO.changed > INFO.exported) ? ' due' : ''}"><div><p class="eyebrow">Your logbook file</p>
+      <p>${INFO.exported ? `Last downloaded ${fmt(INFO.exported)}` : 'Not downloaded yet'}${INFO.changed && (!INFO.exported || INFO.changed > INFO.exported) ? ' · <b>changes since</b>' : ''}. Your logbook is saved in this browser. Download the file to continue on another device and e-mail it to Prof. Petzold to submit.</p></div>
+      <div class="row"><button class="btn small" data-act="dlbook">Download logbook file</button><button class="btn ghost small" data-act="ldbook">Load logbook file</button></div></section>` : ''}
+    ${me && me.vid === v.id && !admin ? GUIDE_FOUNDER : ''}
+    <section class="credo-band"><p>${credoHTML()} <cite>${credoCite()}</cite></p>
+      <div class="cw"><span class="mono">This week</span>${splitBar(f, true)}<span class="mono${f && !onTarget(f) ? ' warn' : ''}">${f ? `${Math.round(f.u)}% users · ${Math.round(f.p)}% product · ${Math.round(f.o)}% other` : 'No hours logged yet'}</span>${canEdit(v.id) ? '<button class="link" data-act="week">Log hours</button>' : ''}</div></section>
+    <section class="kpis">
+      <div><p class="eyebrow">Current move</p>${movePill(mv)}${mv?.note ? `<p class="muted">${esc(mv.note)}</p>` : ''}${canEdit(v.id) ? '<button class="link" data-act="move">Update</button>' : ''}</div>
+      <div><p class="eyebrow">Strongest evidence</p>${ladderBar(lad)}<p class="muted">${esc(C.ladder[lad - 1] || 'None yet')}</p>${canEdit(v.id) ? '<button class="link" data-act="ladder">Update</button>' : ''}</div>
+      <div><p class="eyebrow">Users</p><p class="big mono">${num(t.customer)}<span> paying</span></p><p class="muted mono small">${num(t.conversation)} conversations · ${num(t.commitment)} commitments · ${num(t.revenue)} €</p></div>
+      <div><p class="eyebrow">Product</p><p class="big mono">${num(t.shipped)}<span> shipped</span></p><p class="muted mono small">${num(t.odoo)} Odoo milestones · ${num(t.experiment)} experiments</p></div>
+      <div><p class="eyebrow">Demo Day</p><p class="big mono">${rdy}<span> / ${C.demoDay.checks.length}</span></p><p class="muted mono small">Plan ${pd.pct}% written</p></div>
+    </section>
+    ${vCriteria()}
+    <nav class="tabs" aria-label="Venture views">${tabs.map(([k, l]) => `<a href="#/v/${v.id}${k ? '/' + k : ''}"${(tab || '') === k ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav>
+    ${body}`;
+}
+
+/* ---------- Render & routing ---------- */
+function vCriteria() {
+  const A = C.assessment; if (!A || (!A.confirmed && !admin)) return '';
+  return `<details class="crit"><summary><span class="mono">How you are assessed</span><span class="muted">${esc(A.summary)}</span>${A.confirmed ? '' : '<span class="draft mono">Draft · visible to reviewers only</span>'}</summary>
+    <div class="cgrid">${A.parts.map(p => `<section><h4>${esc(p.name)} <span class="mono">${p.weight} %</span></h4><p class="muted small">${esc(p.what)}</p><ul>${p.criteria.map(c => `<li><span>${esc(c[0])}</span><span class="mono">${c[1]}</span></li>`).join('')}</ul></section>`).join('')}</div>
+    ${A.note ? `<p class="muted small">${esc(A.note)}</p>` : ''}</details>`;
+}
+function vGate() {
+  return `<section class="hero signin"><p class="eyebrow">${esc(C.course)} · ${esc(C.term)}</p><h1>${esc(C.claim)}</h1>
+    <blockquote class="credo"><p>${credoHTML()}</p><cite>${credoCite()}</cite></blockquote>
+    <form class="codeform" id="codeform" autocomplete="off"><label for="code">Your access code</label>
+      <div class="row"><input id="code" name="code" placeholder="XXXX-XXXX-XXXX-XXXX" spellcheck="false" autocapitalize="characters"><button class="btn">Open my venture</button></div>
+      <p class="muted small">Your logbook stays in your browser. Prof. Petzold and Verena Göttlich (Odoo) see it only when you e-mail your logbook file to Prof. Petzold.</p></form></section>
+    <div class="gguide">${GUIDE_FOUNDER}</div>
+    <section class="privacy"><p class="eyebrow">Data protection</p><ul>
+      <li>No personal data of third parties: describe customers anonymously, e.g. “Customer A, café in Neukölln”, without names, e-mail addresses or phone numbers.</li>
+      <li>If you finish your business plan with Claude or another LLM, you use your own account. Remove personal data before you paste anything.</li>
+      <li>Your entries are stored only in this browser and in the logbook files you download. On shared computers, sign out and download your file.</li>
+      <li>This logbook is a learning tool. Official grades are communicated only via Trainex.</li></ul></section>
+    <section class="path" aria-label="Sessions">${C.path.map(p => `<div class="stage"><span class="mono">${esc(p.name)}</span><div class="chips">${p.sessions.map(s => chip(s, current())).join('')}</div></div>`).join('')}</section>`;
+}
+// Own router: works even where the host page blocks or intercepts hash navigation (sandboxed previews).
+let HASH = location.hash || '#/';
+function go(h) {
+  HASH = h;
+  try { if (location.hash !== h) history.replaceState(null, '', h); } catch {}
+  render(); const a = HASH.split('#')[2];
+  if (a) setTimeout(() => document.getElementById(a)?.scrollIntoView({ block: 'start' }), 0); else scrollTo(0, 0);
+}
+function route() { const [p, id, tab] = HASH.replace(/^#\/?/, '').split('#')[0].split('/'); return { p: p || '', id, tab }; }
+function render() {
+  const { p, id, tab } = route();
+  const home = () => admin ? vLab() : me ? vVenture(me.vid, '') : vGate();
+  $('#main').innerHTML = p === 's' ? vSession(id)
+    : p === 'v' && (admin || (me && me.vid === id)) ? vVenture(id, tab)
+    : p === 'v' ? vGate() : home();
+  $('#adm').textContent = admin ? `${ROLE_NAME[admin.role]} · sign out` : 'Lecturer/Odoo';
+  if ($('#demo')) $('#demo').hidden = true;
+  $('#navhome').textContent = admin ? 'Dashboard' : me ? 'My venture' : 'Sign in';
+  document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('on', a.dataset.p === p || (a.dataset.p === '' && p === 'v')));
+}
+
+async function addTraction(vid, track, text) {
+  const kinds = C.traction[track];
+  const r = await modal(track === 'users' ? 'Log progress: getting users' : 'Log progress: building product', [
+    { name: 'kind', label: 'What happened', options: kinds.map(k => [k.id, k.label]) },
+    { name: 'n', label: 'How many (for revenue: amount in €)', type: 'number', value: 1 },
+    { name: 'text', label: 'Note (what, proof; no names of real people, e.g. “Customer A”)', value: text || '' },
+    { name: 'date', label: 'Date', type: 'date', value: today() }], 'Log it',
+    track === 'users' ? 'Count only real people outside the course.' : 'Count only things that exist and work, not plans.');
+  if (!r) return;
+  const n = parseFloat(String(r.n).replace(',', '.'));
+  if (!(n > 0)) { toast('Enter a number above zero.', true); return; }
+  const key = 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  if (await write('trac', vid, key, { date: r.date || today(), track, kind: r.kind, n, text: r.text.trim() })) { toast('Logged'); render(); }
+}
+
+function refreshCompose(vid) { // enable the compose button without re-rendering the text the founder is typing in
+  const btn = document.querySelector('[data-act=compose]'); if (!btn) return;
+  const ok = planData(vById(vid)).filled === planData(vById(vid)).total && parts(vid).every(t => t.trim().length >= PLAN_MIN) && finReady(finInputs(vid));
+  btn.disabled = !ok;
+}
+document.addEventListener('change', async e => {
+  const t = e.target, d = t.dataset;
+  if (d.fin) { const f = { ...finInputs(d.v), [d.fin]: t.value }; const y = scrollY; if (await write('finance', d.v, 'inputs', f)) { render(); scrollTo(0, y); } return; }
+  if (d.act === 'setcur' && await write('course', '_course', 'current', t.value)) { toast('Current session set'); render(); }
+  if (d.act === 'todo') { if (!await write('todo', d.v, d.key, t.checked ? '1' : '0')) t.checked = !t.checked; }
+});
+function formVals(k, sid) { return C.sessions[sid].brief.fields.map((_, i) => (document.getElementById(`e-${k}-${i}`)?.value || '').trim()); }
+function localDraft(k, v) { try { v === null ? localStorage.removeItem('ecl-draft|' + k) : localStorage.setItem('ecl-draft|' + k, JSON.stringify(v)); } catch {} }
+const draftTimers = {};
+async function saveDraft(vid, sid, loud) {
+  const k = vid + '|' + sid, vals = formVals(k, sid), last = J(draftOf(vid, sid), null);
+  localDraft(k, vals);
+  if (last && JSON.stringify(last) === JSON.stringify(vals)) { if (loud) toast('Draft saved'); return; }
+  if (!vals.some(Boolean)) return;
+  if (await write('draft', vid, sid, vals)) { const el = document.getElementById('ds-' + k); if (el) el.textContent = 'Draft saved ' + fmt(new Date().toISOString()); if (loud) toast('Draft saved'); }
+}
+const ppTimers = {};
+document.addEventListener('input', e => {
+  const pp = e.target.dataset?.pp;
+  if (pp) {
+    const [vid, i] = pp.split('|'), t = e.target.value;
+    const c = document.querySelector(`[data-cnt="${i}"]`); if (c) c.textContent = t.trim().length;
+    clearTimeout(ppTimers[pp]); ppTimers[pp] = setTimeout(async () => { if ((get(vid, 'planpart', i)?.value || '') !== t) { await write('planpart', vid, i, t); refreshCompose(vid); } }, 2500);
+    return;
+  }
+  const k = e.target.dataset?.draft; if (!k) return;
+  const [vid, sid] = k.split('|'); localDraft(k, formVals(k, sid));
+  clearTimeout(draftTimers[k]); draftTimers[k] = setTimeout(() => saveDraft(vid, sid), 4000);
+});
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
+  const d = b.dataset, vid = route().id || me?.vid;
+  switch (d.act) {
+    case 'edit': editing.add(d.k); render(); document.getElementById('e-' + d.k + '-0')?.focus(); break;
+    case 'openbrief': { const k = d.v + '|' + d.s; editing.add(k); go(`#/v/${d.v}#b-${d.s}`); setTimeout(() => { const el = document.getElementById('b-' + d.s); if (el) { el.open = true; el.scrollIntoView({ block: 'start' }); } document.getElementById('e-' + k + '-0')?.focus(); }, 50); break; }
+    case 'cancel': { const [vid2, sid2] = d.k.split('|'); clearTimeout(draftTimers[d.k]); if (canEdit(vid2) && !admin) await saveDraft(vid2, sid2); editing.delete(d.k); render(); break; }
+    case 'hist': openHist.has(d.k) ? openHist.delete(d.k) : openHist.add(d.k); render(); break;
+    case 'save': case 'submitdraft': {
+      e.preventDefault();
+      const k = d.v + '|' + d.s, vals = d.act === 'save' ? formVals(k, d.s) : (J(draftOf(d.v, d.s), []) || []);
+      if (!vals.some(Boolean)) { toast('Fill in at least one field.', true); break; }
+      if (!(await modal('Submit for feedback?', [], 'Submit', 'This marks the brief as submitted. Prof. Petzold and Verena Göttlich see it once you e-mail your logbook file to Prof. Petzold.'))) break;
+      b.disabled = true;
+      if (await write('brief', d.v, d.s, vals)) { editing.delete(k); localDraft(k, null); toast('Marked as submitted. Now download your logbook file and e-mail it to Prof. Petzold.'); }
+      render(); break;
+    }
+    case 'savedraft': { await saveDraft(d.v, d.s, true); break; }
+    case 'fb': {
+      const key = d.s, odoo = admin.role === 'partner';
+      const title = (d.s === 'plan' ? 'Business plan' : `${d.s} ${C.sessions[d.s].brief.name}`) + (odoo ? ' · comment' : ' · feedback');
+      const r = await modal(title, [
+        ...(odoo ? [] : [{ name: 'verdict', label: 'Verdict', options: [['revise', 'Revise'], ['ready', 'Accepted']], value: verdictOf(d.v, key)?.v }]),
+        { name: 'text', label: odoo ? 'Comment' : 'Feedback', area: true, value: '' }], odoo ? 'Add comment' : 'Send feedback');
+      if (r && r.text.trim() && await write('feedback', d.v, key, odoo ? { text: r.text.trim() } : { verdict: r.verdict, text: r.text.trim() })) { toast('Saved'); render(); }
+      break;
+    }
+    case 'addtrac': await addTraction(vid, d.track, d.text); break;
+    case 'deltrac': {
+      const ent = J(get(vid, 'trac', d.key)); if (!ent) break;
+      if (await write('trac', vid, d.key, { ...ent, deleted: true })) { toast('Removed'); render(); }
+      break;
+    }
+    case 'week': {
+      const w = isoWeek(), cur = J(get(vid, 'week', w)) || {};
+      const r = await modal(`Founder hours · week ${w.slice(-2)}`, [
+        { name: 'users', label: 'Getting users (talking, selling, onboarding)', type: 'number', value: cur.users ?? '' },
+        { name: 'product', label: 'Building product (incl. Odoo set-up)', type: 'number', value: cur.product ?? '' },
+        { name: 'other', label: 'Everything else (planning, admin, slides, polishing)', type: 'number', value: cur.other ?? '' }], 'Save hours',
+        'Rough hours are enough. Be honest: the point is to see where your attention goes.');
+      if (!r) break;
+      const h = k => Math.max(0, parseFloat(String(r[k]).replace(',', '.')) || 0);
+      if (await write('week', vid, w, { users: h('users'), product: h('product'), other: h('other') })) { toast('Hours saved'); render(); }
+      break;
+    }
+    case 'submitplan': {
+      const pe = get(vid, 'planpdf', 'pdf'), pdf = J(pe); if (!pdf) break;
+      const r = await modal('Send plan for review', [], 'Send to reviewers', 'Your PDF goes into your logbook file. E-mail that file to Prof. Petzold; he and Verena Göttlich (Odoo) then see it. This is an optional extra service and does not count towards your grade.');
+      if (!r) break;
+      if (await write('plan', vid, 'submission', { pdfId: pdf.id, name: pdf.name })) { toast('Marked for review. Download your logbook file and e-mail it to Prof. Petzold.'); render(); }
+      break;
+    }
+    case 'planwrite': writing.add(vid); render(); break;
+    case 'dlbook': await downloadLogbook(); break;
+    case 'ldbook': await loadLogbook(); break;
+    case 'importrev': await importForReview(); break;
+    case 'publish': await publish(); break;
+    case 'mergeupdate': { const [f] = await pickFiles('.html,text/html'); if (f) await publish(await readText(f)); break; }
+    case 'exportfb': await exportFeedback(); break;
+    case 'compose': {
+      if (await write('plandoc', vid, 'doc', { md: composePlan(vById(vid)), source: 'logbook' })) { writing.delete(vid); toast('Your business plan is ready'); go(`#/v/${vid}/plan`); }
+      break;
+    }
+    case 'copyprompt': {
+      const txt = PLAN_PROMPT + planDoc(vid).md.replace('[[FINANCE_TABLES]]', financeMD(finInputs(vid)));
+      try { await navigator.clipboard.writeText(txt); toast('Copied. Paste it into Claude or another LLM.'); }
+      catch { const ta = $('#promptbox'); if (ta) { ta.hidden = false; ta.value = txt; ta.select(); toast('Selected. Copy with Ctrl+C / ⌘C.'); } }
+      break;
+    }
+    case 'uploadpdf': {
+      const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/pdf,.pdf';
+      inp.onchange = async () => {
+        const file = inp.files[0]; if (!file) return;
+        if (file.size > PDF_MAX) { toast(`The PDF is larger than ${PDF_MAX / 1048576} MB. Please compress it.`, true); return; }
+        const data = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(',')[1] || ''); fr.readAsDataURL(file); });
+        if (!data.startsWith('JVBER')) { toast('This is not a PDF file.', true); return; }
+        toast('Uploading …');
+        const res = await api({ action: 'upload', team: vid, code: me?.code || '', name: file.name, size: file.size, data });
+        if (!res.ok) { toast(res.error || 'Upload failed', true); return; }
+        DB.log.push({ ts: res.ts, team: vid, type: 'planpdf', key: 'pdf', value: JSON.stringify({ id: res.id, name: file.name, size: file.size }), author: 'Founder' }); index();
+        toast('PDF uploaded'); render();
+      };
+      inp.click(); break;
+    }
+    case 'openpdf': {
+      toast('Loading PDF …');
+      const res = await api({ action: 'file', id: d.id, code: me?.code || '', adminKey: admin?.key || '' });
+      if (!res.ok) { toast(res.error || 'Could not load the PDF', true); break; }
+      const bin = atob(res.data), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([u8], { type: 'application/pdf' }));
+      const a = document.createElement('a'); a.href = url; a.download = d.name || 'business-plan.pdf'; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000); break;
+    }
+    case 'copyplan': {
+      const doc = planDoc(vid), txt = doc ? doc.md.replace('[[FINANCE_TABLES]]', financeText(finInputs(vid))) : planText(vById(vid));
+      try { await navigator.clipboard.writeText(txt); toast('Plan copied'); }
+      catch { const r = document.createRange(); const el = $('#plan-doc'); if (el) { r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Plan selected. Copy with Ctrl+C / ⌘C.'); } }
+      break;
+    }
+    case 'print': window.print(); break;
+    case 'profile': await editProfile(vid); break;
+    case 'move': {
+      const cur = J(get(vid, 'move', 'move'), {}) || {};
+      const r = await modal('Current move', [{ name: 'move', label: 'Move', options: C.moves.map(m => [m.id, m.label]), value: cur.move }, { name: 'note', label: 'Why (one sentence)', value: cur.note }]);
+      if (r && await write('move', vid, 'move', { move: r.move, note: r.note.trim() })) { toast('Saved'); render(); }
+      break;
+    }
+    case 'ladder': {
+      const cur = get(vid, 'ladder', 'ladder')?.value;
+      const r = await modal('Strongest evidence so far', [{ name: 'step', label: 'Evidence ladder', options: C.ladder.map((l, i) => [String(i + 1), l]), value: cur }]);
+      if (r && await write('ladder', vid, 'ladder', r.step)) { toast('Saved'); render(); }
+      break;
+    }
+    case 'logout': if (me) PUBFB[me.vid] = undefined; me = null; store.set('ecl-me', null); editing.clear(); DB = { ventures: [], log: DB.log.filter(e => e.team === '_course') }; index(); go('#/'); break;
+  }
+});
+$('#adm').addEventListener('click', async () => {
+  if (admin) { admin = null; CODES = null; store.set('ecl-admin', null, true); go('#/'); await load(); return; }
+  const r = await modal('Reviewer access', [{ name: 'k', label: 'Key', type: 'password' }], 'Sign in'); if (!r) return;
+  const res = await api({ action: 'check', adminKey: r.k });
+  if (res.role) { admin = { key: r.k, role: res.role }; store.set('ecl-admin', admin, true); toast(`Signed in as ${ROLE_NAME[res.role]}`); go('#/'); await load(); } else toast('Key not valid', true);
+});
+async function editProfile(vid, first) {
+  const p = profile(vById(vid));
+  const r = await modal(first ? 'Name your venture' : 'Venture', [{ name: 'venture', label: 'Venture name', value: first ? '' : p.venture }, { name: 'oneLiner', label: 'One-liner: who you help with what', area: true, value: p.oneLiner }],
+    'Save', first ? 'Welcome to your Unicorn Logbook. Give your venture a working name; you can change it any time.' : '');
+  if (r && (r.venture.trim() || r.oneLiner.trim()) && await write('profile', vid, 'profile', { venture: r.venture.trim() || p.venture, oneLiner: r.oneLiner.trim() })) { toast('Saved'); render(); }
+}
+// Sandboxed frames (e.g. previews) block native form submission: submit forms via a synthetic event instead.
+const fakeSubmit = form => form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+document.addEventListener('click', e => { const btn = e.target.closest('form button:not([type=button])'); if (!btn || btn.dataset.act) return; e.preventDefault(); fakeSubmit(btn.form); }, true);
+document.addEventListener('keydown', e => { if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || !e.target.form) return; e.preventDefault(); fakeSubmit(e.target.form); }, true);
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'codeform') return;
+  e.preventDefault();
+  const code = e.target.code.value;
+  if (!norm(code)) { toast('Enter your access code.', true); return; }
+  const res = await api({ action: 'check', code });
+  if (!res.venture) { toast('This code does not match any venture. Check for typos.', true); return; }
+  me = { vid: res.venture, code: code.trim() }; store.set('ecl-me', me); go('#/'); await load();
+  if (!get(me.vid, 'profile', 'profile')) editProfile(me.vid, true); else toast('Welcome back');
+});
+window.addEventListener('hashchange', () => { if (location.hash && location.hash !== HASH) go(location.hash); });
+document.addEventListener('click', e => { const a = e.target.closest('a[href^="#"]'); if (!a || e.defaultPrevented) return; e.preventDefault(); go(a.getAttribute('href')); }, true);
+window.__ecl = { write, SIDS, C }; // test hook
+load().then(() => { const a = HASH.split('#')[2]; if (a) document.getElementById(a)?.scrollIntoView({ block: 'start' }); });
+})();
+
+</script>
+</body>
+</html>
